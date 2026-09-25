@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>E-Mahajon CMT System</title>
+    
+    <link rel="icon" type="image/png" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png">
+    <link rel="apple-touch-icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Linked CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Theme Initialization (Inline to prevent flickering) -->
+    <script>
+        if(localStorage.getItem('cmt_theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
+    </script>
+    
+    <!-- Confetti & Loaders -->
+    <div id="confettiLayer"></div>
+    <div id="fullLoader">
+        <div class="spinner"></div>
+        <h3 id="loaderMsg" style="color:var(--text-title); font-family:Poppins; margin:0; font-size:24px;">Assalamu Alaikum.. Welcome To CMT...</h3>
+        <p id="loaderSubMsg" style="color:var(--text-muted); font-family:Poppins; font-size:14px; margin-top:5px;">Made By Emtiaj Ahamed Jony</p>
+    </div>
+
+    <!-- Toasts -->
+    <div id="customToast"><i class="fa fa-info-circle" id="toastIcon"></i> <span id="toastMsgTxt">Action Successful</span></div>
+    <div id="toastNotif" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#10b981; color:white; padding:12px 25px; border-radius:30px; font-size:14px; font-weight:500; display:none; z-index:2000; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"><i class="fa fa-check-circle"></i> <span id="toastMsgTxt">Copied to Clipboard!</span></div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div id="flashlight"></div>
+        <div class="lamp-wrapper">
+            <div class="lamp-wire"></div>
+            <div class="lamp-shade"><div class="bulb"></div></div>
+            <div class="lamp-cord" id="lampCord" onclick="toggleLamp()"><div class="cord-knob"></div></div>
+        </div>
+        <div class="lamp-light-beam" id="lightBeam"></div>
+        <div class="pull-instruction">Pull the cord to turn on 💡<br><i class="fa fa-chevron-down" style="margin-top:10px;"></i></div>
+        <div class="helper-person" id="helperPerson" onclick="askHelper()">
+            <div class="helper-speech" id="helperSpeech">Assalamu Alaikum! 👋</div>
+            <div class="css-man" id="cssMan">
+                <div class="head"></div>
+                <div class="torso"></div>
+                <div class="arm arm-left"></div>
+                <div class="arm arm-right"><div class="remote"><div class="led"></div></div></div>
+                <div class="leg leg-left"></div>
+                <div class="leg leg-right"></div>
+            </div>
+        </div>
+
+        <div class="login-box">
+            <div class="login-header-icon">
+                <img alt="E-Mahajon Login" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhVOQnGe5S7-y5rw98DVzW3POKtFznfF5MYn_3qep_30GRxohi2gU3pT_mXzzhKBQY6kwxO_vkaRx3BIip82mkOEjlFBbxWKcXcZ6f-17vgduWfPLB_NzbnnYgBqsPM4sVzSae95BAqZSxk7lP6V9dJwsQVagyVvsF_JL0v_Ir1ham9zOVYPafj4sMGvh8/s320/emahajon-logo.png">
+            </div>
+            <h2>E-Mahajon CMT</h2>
+            <div class="login-subtitle">Sign in to continue</div>
+            
+            <div class="input-group has-icon">
+                <i class="fa fa-user input-icon"></i>
+                <input id="user" placeholder="Username or Email" type="text">
+            </div>
+            <div class="input-group has-icon">
+                <i class="fa fa-lock input-icon"></i>
+                <input id="pass" placeholder="Password" type="password">
+                <i class="fa fa-eye pwd-toggle" id="togglePwd" onclick="togglePassword()"></i>
+            </div>
+            <div class="login-options">
+                <label class="remember-me"><input id="rememberMe" type="checkbox"> Remember Me</label>
+                <span class="forgot-link" onclick="openForgotPassModal()">Forgot Password?</span>
+            </div>
+            <button class="login-btn" onclick="login()">Login <i class="fa fa-arrow-right" style="margin-left:5px;"></i></button>
+            <div class="divider"><span>OR CONTINUE WITH</span></div>
+            <div id="biometricSection" style="text-align:center;">
+                <div class="fingerprint-btn" onclick="loginWithBiometric()" title="Login with Fingerprint"><i class="fa fa-fingerprint"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div id="cmdPalette">
+        <div class="cmd-box">
+            <i class="fa fa-times" onclick="executeCommand('close')" style="position: absolute; right: 20px; top: 22px; cursor: pointer; color: var(--text-muted); font-size: 18px; z-index: 10;"></i>
+            <input class="cmd-input" id="cmdInput" placeholder="Type a command (e.g., 'add', 'report', 'dark')" type="text">
+            <ul class="cmd-list" id="cmdList">
+                <li onclick="executeCommand('add')"><i class="fa fa-plus"></i> Add New Client</li>
+                <li onclick="executeCommand('report')"><i class="fa fa-file-contract"></i> Go to Reports</li>
+                <li onclick="executeCommand('team')"><i class="fa fa-chart-bar"></i> View Team Activity</li>
+                <li onclick="executeCommand('theme')"><i class="fa fa-moon"></i> Toggle Dark/Light Mode</li>
+                <li onclick="executeCommand('logout')"><i class="fa fa-sign-out-alt"></i> Logout</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Context Menus -->
+    <div id="glassContextMenu">
+        <div class="context-item" onclick="ctxAction('copy')"><i class="fa fa-copy"></i> Copy Password</div>
+        <div class="context-item" onclick="ctxAction('whatsapp')"><i class="fa fa-whatsapp" style="color:#25D366;"></i> WhatsApp Client</div>
+        <div class="context-item" onclick="ctxAction('edit')"><i class="fa fa-edit" style="color:#f59e0b;"></i> Quick Edit</div>
+        <div class="context-item" onclick="ctxAction('pin')"><i class="fa fa-thumbtack" style="color:#8b5cf6;"></i> Pin to Screen (PiP)</div>
+    </div>
+
+    <div id="pipCard">
+        <div class="pip-header"><span><i class="fa fa-thumbtack"></i> Pinned Client</span><i class="fa fa-times" onclick="closePip()" style="cursor:pointer;"></i></div>
+        <div class="pip-body" id="pipBody"></div>
+    </div>
+
+    <div id="storyModal">
+        <div class="story-container">
+            <div class="story-bars" id="storyBars"></div>
+            <div class="story-header">
+                <span style="font-weight:600; display:flex; align-items:center; gap:8px;"><i class="fa fa-user-circle fa-2x"></i> <span id="storyClientName">Client</span></span>
+                <i class="fa fa-times fa-lg" onclick="closeStory()" style="cursor:pointer;"></i>
+            </div>
+            <div class="story-content" id="storyContent"></div>
+            <div class="story-nav">
+                <div class="story-left" onclick="prevStory()"></div>
+                <div class="story-right" onclick="nextStory()"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Main App Layout -->
+    <div id="appLayout">
+        <aside class="sidebar" id="sidebarElement">
+            <div class="sidebar-wrapper">
+                <div class="sidebar-brand" style="text-align: center; padding: 15px 10px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <img alt="E-Mahajon Logo" onclick="window.location.reload();" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjKLv5sPYmwImP5bEqVkmiML_uYkW9PeADicaKPpzR9se4J_hmQskungGNgGQqEc9pBYGCaYZFaYtlfig0Q6ozxDPpaZ4pvHTiYrpIr51uV961JHSv4mXUDBD7ehwj6FF-3muO3Qo-lzGw5vCrK1nwhwp8ei9NMyQZsUrtEfueCvtY35i64JNIPAZ9GkfM/s320/emahajon-logo.png" style="width: 35px; height: 35px; cursor: pointer; object-fit: contain;" title="Click to Reload Dashboard">
+                    <span onclick="window.location.reload();" style="color: white; font-size: 20px; font-weight: bold; cursor: pointer;">E-Mahajon CMT</span>
+                </div>
+                
+                <ul class="sidebar-menu" id="sidebarMenu">
+                    <!-- Workspace -->
+                    <li class="menu-header desktop-only">Workspace</li>
+                    <li class="active"><a href="javascript:void(0)" id="nav-dashboard" onclick="switchTab('dashboard')"><i class="fa fa-laptop-house"></i> Clients</a></li>
+                    <li id="menuUserManage" style="display:none;"><a href="javascript:void(0)" id="nav-users" onclick="switchTab('users')"><i class="fa fa-users-cog"></i> Users</a></li>
+
+                    <!-- Live Activity -->
+                    <li class="menu-header desktop-only">Live Activity</li>
+                    <li><a href="javascript:void(0)" id="nav-active-users" onclick="switchTab('active-users')"><i class="fa fa-satellite-dish"></i> Live Users <span class="menu-badge pulse-badge desktop-only">Live</span></a></li>
+                    <li><a href="javascript:void(0)" id="nav-team" onclick="switchTab('team')"><i class="fa fa-chart-bar"></i> Team Activity</a></li>
+
+                    <!-- Analytics -->
+                    <li class="menu-header desktop-only">Analytics</li>
+                    <li><a href="javascript:void(0)" id="nav-reports" onclick="switchTab('reports')"><i class="fa fa-file-contract"></i> Reports</a></li>
+
+                    <!-- Communication -->
+                    <li class="menu-header desktop-only">Communication</li>
+                    <li><a href="javascript:void(0)" id="nav-emails" onclick="switchTab('emails')"><i class="fa fa-envelope"></i> Email Templates <span class="menu-badge desktop-only">New</span></a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="top-header">
+                <div class="header-left">
+                    <i class="fa fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+                    <h3 id="pageTitle" style="margin:0; color:var(--text-title); font-weight: 700; font-size:18px;">Client Database</h3>
+                    <span id="liveClock" style="margin-left:15px; font-size:13px; color:var(--text-muted); font-weight:500; background:var(--bg-input); padding:5px 15px; border-radius:20px; display:flex; align-items:center; gap:8px; border: 1px solid var(--border-color);">
+                        <i class="fa fa-clock"></i> <span id="clockTime">--:--:--</span>
+                        <i class="fa fa-sync" onclick="fetchData()" style="margin-left:5px; cursor:pointer; color:#3b82f6;" title="Refresh Data"></i>
+                    </span>
+                </div>
+                
+                <div class="profile-dropdown-container">
+                    <div class="notification-container" onclick="toggleNotifMenu(event)">
+                        <i class="fa fa-bell bell-icon"></i>
+                        <span class="notif-badge" id="notifBadge">0</span>
+                        <div class="notif-dropdown" id="notifMenu">
+                            <div class="notif-header">Notifications <span class="notif-clear" onclick="clearNotifs(event)">Clear All</span></div>
+                            <ul class="notif-list" id="notifList">
+                                <li style="padding:15px; text-align:center; color:var(--text-muted); font-size:12px;">No new notifications</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <i class="fa fa-expand theme-toggle" id="fullscreenIcon" onclick="toggleFullScreen()" style="margin-right:15px;" title="Toggle Fullscreen"></i>
+                    <i class="fa fa-moon theme-toggle" id="themeIcon" onclick="toggleTheme()" title="Switch Theme"></i>
+                    
+                    <div class="profile-trigger" onclick="toggleProfileMenu(event)">
+                        <div class="user-info">
+                            <span class="user-name" id="displayUserName">Loading...</span>
+                            <span class="user-role" id="displayUserRole">Role</span>
+                        </div>
+                        <img class="avatar" id="avatarImage" src="" style="display:none;">
+                        <div class="avatar" id="avatarLetter">A</div>
+                    </div>
+                    <div class="dropdown-menu" id="profileMenu">
+                        <a href="javascript:void(0)" onclick="openProfileModal()"><i class="fa fa-user"></i> My Profile</a>
+                        <a class="logout" href="javascript:void(0)" onclick="logout()"><i class="fa fa-sign-out-alt"></i> Secure Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+
+                <!-- Admin Dashboard -->
+                <div class="tab-panel" id="tab-admin-dashboard">
+                    <h3 style="margin-top:0; color:var(--text-title); font-weight: 700; margin-bottom:20px;">Master Dashboard</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                        <div class="glass-card wave-blue">
+                            <div class="magic-border"></div>
+                            <div class="card-content">
+                                <h4>Total Clients</h4>
+                                <h2 id="dashTotalClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            </div>
+                        </div>
+                        <div class="glass-card wave-green">
+                            <div class="magic-border"></div>
+                            <div class="card-content">
+                                <h4>Active Clients</h4>
+                                <h2 id="dashActiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            </div>
+                        </div>
+                        <div class="glass-card wave-red">
+                            <div class="magic-border"></div>
+                            <div class="card-content">
+                                <h4>Inactive Clients</h4>
+                                <h2 id="dashInactiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            </div>
+                        </div>
+                        <div class="glass-card wave-yellow">
+                            <div class="magic-border"></div>
+                            <div class="card-content">
+                                <h4>System Users</h4>
+                                <h2 id="dashTotalUsers" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+                        <div class="dash-card" style="padding: 0;">
+                            <div style="padding: 15px 20px; background: var(--table-header); border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-title);">Client Stages Overview</div>
+                            <div style="padding: 20px;"><canvas height="250" id="stageChart"></canvas></div>
+                        </div>
+                        <div class="dash-card" style="padding: 0;">
+                            <div style="padding: 15px 20px; background: var(--table-header); border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-title);">Team Workload (Assigned)</div>
+                            <div style="padding: 20px;"><canvas height="250" id="workloadChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Dashboard (Clients) -->
+                <div class="tab-panel active" id="tab-dashboard">
+                    <div class="controls">
+                        <div style="position: relative; width:100%; max-width:340px; display:flex; align-items:center;">
+                            <i class="fa fa-search" style="position: absolute; left: 15px; color: var(--text-muted);"></i>
+                            <input class="search-box" id="searchInput" onkeyup="filterTable()" placeholder="Search clients..." style="padding-left: 45px; max-width: 100%; width:100%;" type="text">
+                            <i class="fa fa-microphone" id="voiceBtn" onclick="startVoiceAssistant()" style="position:absolute; right:15px; cursor:pointer; color:#3b82f6; font-size:18px; transition:0.3s;" title="Voice Assistant"></i>
+                        </div>
+                        
+                        <div class="view-toggle" style="margin-left:15px; margin-right:auto;">
+                            <button class="view-toggle-btn active" id="btnTableView" onclick="switchClientView('table')"><i class="fa fa-list"></i> Table</button>
+                            <button class="view-toggle-btn" id="btnBoardView" onclick="switchClientView('board')"><i class="fa fa-columns"></i> Kanban Board</button>
+                        </div>
+
+                        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                            <button class="btn-primary" id="bulkActiveBtn" onclick="bulkStatus('Active')" style="display:none; background:#10b981;"><i class="fa fa-check"></i> Mark Active</button>
+                            <button class="btn-warning" id="bulkInactiveBtn" onclick="bulkStatus('Inactive')" style="display:none;"><i class="fa fa-ban"></i> Mark Inactive</button>
+                            <button class="btn-danger" id="multiDeleteBtn" onclick="deleteSelectedClients()" style="display:none;"><i class="fa fa-trash"></i> Delete Selected</button>
+                            
+                            <button class="btn-outline" onclick="exportExcel()"><i class="fa fa-file-excel" style="color:#10b981; font-size:16px;"></i> Download Excel</button>
+                            <button class="btn-outline" onclick="openBulkModal()"><i class="fa fa-cloud-upload-alt" style="color:#f59e0b; font-size:16px;"></i> Bulk Upload</button>
+                            <button class="btn-primary" onclick="openModal('add')"><i class="fa fa-plus"></i> Add Client</button>
+                        </div>
+                    </div>
+                    
+                    <div id="tableViewWrapper" style="display:block; width:100%;">
+                        <div class="table-container" id="clientTableContainer" style="max-height: calc(100vh - 200px);"></div>
+                        <div class="pagination" id="clientPagination"></div>
+                    </div>
+                    <div class="kanban-board" id="boardViewWrapper"></div>
+
+                    <div style="margin-top: 30px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:var(--text-title); font-size:16px;"><i class="fa fa-sticky-note" style="color:#f59e0b;"></i> Team Pinboard</h4>
+                        <button class="btn-outline" onclick="addStickyNote()"><i class="fa fa-plus"></i> Add Note</button>
+                    </div>
+                    <div class="sticky-notes-board" id="stickyNotesBoard"></div>
+                </div>
+
+                <!-- Active Users -->
+                <div class="tab-panel" id="tab-active-users">
+                    <div class="controls">
+                        <h3 style="margin:0; color:var(--text-title); font-weight: 700;"><i class="fa fa-satellite-dish" style="color:#10b981;"></i> Live Active Users</h3>
+                    </div>
+                    <div id="activeUsersContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
+                </div>
+
+                <!-- Email Templates -->
+                <div class="tab-panel" id="tab-emails">
+                    <div class="controls">
+                        <h3 style="margin:0; color:var(--text-title); font-weight: 700;"><i class="fa fa-envelope-open-text" style="color:#3b82f6;"></i> Email Templates</h3>
+                        <button class="btn-primary" onclick="openEmailTemplateModal()"><i class="fa fa-plus"></i> New Template</button>
+                    </div>
+                    <div class="table-container" id="emailTableContainer"></div>
+                </div>
+
+                <!-- Reports -->
+                <div class="tab-panel" id="tab-reports">
+                    <div class="controls" style="justify-content: flex-end; margin-bottom:10px;">
+                        <button class="btn-outline" onclick="toggleReportFilters()"><i class="fa fa-eye-slash"></i> Toggle Filters</button>
+                    </div>
+                    <div class="report-filters" id="reportFilterSection">
+                        <div class="filter-item"><label>Assigned Person</label><select id="repFilterAssigned"><option value="">All Persons</option></select></div>
+                        <div class="filter-item"><label>Client Name</label><select id="repFilterName"><option value="">All Clients</option></select></div>
+                        <div class="filter-item"><label>Client Stage</label><select id="repFilterStage"><option value="">All Stages</option></select></div>
+                        <div class="filter-item"><label>Client Status</label><select id="repFilterStatus"><option value="">All Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+                        <div class="filter-item"><label>Start Date</label><input id="repStartDate" onclick="if(this.showPicker) this.showPicker();" type="date"></div>
+                        <div class="filter-item"><label>End Date</label><input id="repEndDate" onclick="if(this.showPicker) this.showPicker();" type="date"></div>
+                        <div class="filter-btn-group">
+                            <button class="btn-primary" onclick="generateReport()"><i class="fa fa-sync"></i> Generate</button>
+                            <button class="btn-outline" onclick="resetReports()"><i class="fa fa-undo"></i> Reset</button>
+                            <button class="btn-primary" onclick="exportCSV()" style="background: #10b981;"><i class="fa fa-file-csv"></i> CSV</button>
+                            <button class="btn-primary" onclick="printReport()" style="background: #3b82f6;"><i class="fa fa-print"></i> Print</button>
+                        </div>
+                    </div>
+                    <div class="table-container" id="reportResultContainer" style="max-height: calc(100vh - 200px);">
+                        <div style="padding: 40px; text-align:center; color:var(--text-muted); font-size:14px;">Apply filters and click Generate to see the report.</div>
+                    </div>
+                    <table style="display:none;"><tbody id="printRealTableBody"></tbody></table>
+                </div>
+
+                <!-- Team Workload -->
+                <div class="tab-panel" id="tab-team">
+                    <h3 style="margin-top:0; color:var(--text-title); font-weight: 700; margin-bottom:20px;">Team Workload Overview</h3>
+                    <div id="teamActivityContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;"></div>
+                </div>
+                
+                <!-- System Users -->
+                <div class="tab-panel" id="tab-users">
+                    <div class="controls">
+                        <h3 style="margin:0; color:var(--text-title); font-weight: 700;">System Users Config</h3>
+                        <button class="btn-primary" onclick="openUserModal('add')"><i class="fa fa-user-plus"></i> Create User</button>
+                    </div>
+                    <div class="table-container" id="userTableContainer"></div>
+                </div>
+
+            </div>
+        </main>
+
+        <nav class="bottom-nav" id="bottomNavElement">
+            <a class="bottom-nav-item active" href="javascript:void(0)" onclick="switchTab('dashboard'); updateBottomNav(this)"><i class="fa fa-home"></i><span>Home</span></a>
+            <a class="bottom-nav-item" href="javascript:void(0)" onclick="switchTab('admin-dashboard'); updateBottomNav(this)"><i class="fa fa-chart-pie"></i><span>Dash</span></a>
+            <div class="center-fab" onclick="toggleSmartMenu()"><i class="fa fa-plus"></i></div>
+            <a class="bottom-nav-item" href="javascript:void(0)" onclick="switchTab('active-users'); updateBottomNav(this)"><i class="fa fa-satellite-dish"></i><span>Active</span></a>
+            <a class="bottom-nav-item" href="javascript:void(0)" onclick="switchTab('reports'); updateBottomNav(this)"><i class="fa fa-briefcase"></i><span>Report</span></a>
+        </nav>
+        
+        <div class="smart-menu-overlay" id="smartMenu" onclick="toggleSmartMenu()">
+            <div class="smart-menu-content" onclick="event.stopPropagation()">
+                <h3 style="margin: 0 0 20px 0; text-align:center; color:var(--text-title);">Smart Actions</h3>
+                <div class="smart-menu-grid">
+                    <div class="smart-menu-item" onclick="openModal('add'); toggleSmartMenu()"><i class="fa fa-user-plus"></i> Add Client</div>
+                    <div class="smart-menu-item" onclick="switchTab('emails'); toggleSmartMenu()"><i class="fa fa-envelope-open-text"></i> Emails</div>
+                    <div class="smart-menu-item" onclick="switchTab('team'); toggleSmartMenu()"><i class="fa fa-users"></i> Team</div>
+                    <div class="smart-menu-item" id="smartUserManageBtn" onclick="switchTab('users'); toggleSmartMenu()"><i class="fa fa-cog"></i> Setup</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="clientModal" style="padding: 0 !important; background: var(--bg-main);">
+        <div class="modal" style="width: 100vw; height: 100vh; max-width: 100vw; border-radius: 0; border: none; box-shadow: none;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <i class="fa fa-arrow-left close-modal-icon" onclick="closeModal()"></i>
+                    <h3 id="modalTitle">Add New Client</h3>
+                </div>
+                <button class="btn-primary" id="btnSaveClient" onclick="saveClient()"><i class="fa fa-save" id="btnSaveIcon"></i> <span>SAVE CLIENT</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-content-wrap" style="width: 100%;">
+                    <div class="form-section">
+                        <div class="form-section-title">Client Basic Details</div>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Created Date</label><input id="m-create-date" onclick="if(this.showPicker) this.showPicker();" type="date"></div>
+                            <div class="form-group"><label>Client Name</label><input id="m-name" type="text"></div>
+                            <div class="form-group"><label>Mobile Number</label><input id="m-mobile" placeholder="+880..." type="text"></div>
+                            <div class="form-group"><label>Email Address</label><input id="m-email" type="email"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">Platform Access &amp; Assignment</div>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Client Stage <span class="stage-manage-btn" onclick="openStageManage()"><i class="fa fa-cog"></i> Manage Stages</span></label><select id="m-stage"></select></div>
+                            <div class="form-group" id="assignGroup"><label>Assigned To (Person)</label><select id="m-assigned"></select></div>
+                            <div class="form-group"><label>Portal Login URL</label><input id="m-url" placeholder="https://" type="text"></div>
+                            <div class="form-group"><label>Login User ID</label><input id="m-uid" type="text"></div>
+                            <div class="form-group"><label>Login Password</label><input id="m-pass" type="text"></div>
+                            
+                            <div class="form-group"><label>Address</label><textarea id="m-address" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-input); border-radius: 6px; outline: none; font-size: 13px; font-family: 'Poppins'; background: var(--bg-input); color: var(--text-main); resize: vertical; min-height: 38px;"></textarea></div>
+                            <div class="form-group"><label>Remarks / Notes</label><textarea id="m-remarks" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-input); border-radius: 6px; outline: none; font-size: 13px; font-family: 'Poppins'; background: var(--bg-input); color: var(--text-main); resize: vertical; min-height: 38px;"></textarea></div>
+                            
+                            <div class="form-group" style="display:flex; align-items:flex-end;">
+                                <div id="dropZone" onclick="document.getElementById('m-file').click()" onmouseout="this.style.width='40px'; this.style.justifyContent='center'; this.style.padding='0'; document.getElementById('uploadText').style.display='none';" onmouseover="this.style.width='180px'; this.style.justifyContent='flex-start'; this.style.padding='0 15px'; document.getElementById('uploadText').style.display='inline-block';" style="width: 40px; height: 38px; border-radius: 20px; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.4s ease; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 10px rgba(59,130,246,0.3); outline: none;" tabindex="0" title="Click or press Ctrl+V to attach">
+                                    <i class="fa fa-paperclip" id="uploadIcon" style="font-size: 16px;"></i>
+                                    <span id="uploadText" style="display: none; margin-left: 10px; font-size: 12px; font-weight: 600;">Attach / Paste File</span>
+                                    <input id="m-file" onchange="handleFileUpload(event)" style="display:none;" type="file">
+                                </div>
+                                <input id="m-doc" style="display:none;" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="stageModal" style="z-index: 1005;">
+        <div class="modal" style="max-width: 650px; height:auto; padding:0; border-radius: 16px;">
+            <div class="modal-header">
+                <div class="modal-header-left"><h3 style="color:var(--text-title); font-size:18px;"><i class="fa fa-list"></i> Manage Stages</h3></div>
+                <i class="fa fa-times close-modal-icon" onclick="document.getElementById('stageModal').style.display='none'"></i>
+            </div>
+            <div class="modal-body" style="padding: 25px;">
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+                    <div style="background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 15px;">
+                        <input id="newStageInput" placeholder="New Stage Name" style="padding:15px; border:1px solid var(--border-input); border-radius:8px; background:transparent; color:var(--text-main); font-family:'Poppins'; outline: none;" type="text">
+                        <button class="btn-primary" onclick="addCustomStage()" style="padding:15px; border-radius: 8px; justify-content: center;"><i class="fa fa-plus"></i> Add Stage</button>
+                    </div>
+                    <div id="stageListContainer" style="background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 15px; overflow-y: auto; max-height: 250px; display: flex; flex-direction: column; gap: 10px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="userModal" style="padding: 0 !important; background: var(--bg-main); z-index: 999999;">
+        <div class="modal" style="width: 100vw; height: 100vh; max-width: 100vw; border-radius: 0; border: none; box-shadow: none;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <i class="fa fa-arrow-left close-modal-icon" onclick="closeUserModal()"></i>
+                    <h3 id="uModalTitle">Create System User</h3>
+                </div>
+                <button class="btn-primary" onclick="saveSystemUser()"><i class="fa fa-save"></i> <span>SAVE USER</span></button>
+            </div>
+            <div class="modal-body" style="padding: 20px 30px;">
+                <div class="modal-content-wrap" style="max-width: 1200px; margin: 0 auto; width: 100%; gap: 15px;">
+                    <div class="form-section" style="padding: 15px 20px;">
+                        <div class="form-section-title" style="margin-bottom: 12px;">System Access &amp; Credentials</div>
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 15px;">
+                            <div class="form-group"><label>Created Date <span style="color:#ef4444; font-size:14px;">*</span></label><input id="u-create-date" onclick="if(this.showPicker) this.showPicker();" type="date"></div>
+                            <div class="form-group"><label>User Name (Full Name) <span style="color:#ef4444; font-size:14px;">*</span></label><input id="u-name" placeholder="User full name" type="text"></div>
+                            <div class="form-group"><label>Login ID (Unique) <span style="color:#ef4444; font-size:14px;">*</span></label><input id="u-user" placeholder="Enter login ID" type="text"></div>
+                            
+                            <div class="form-group"><label>Password <span style="color:#ef4444; font-size:14px;">*</span></label>
+                                <div style="position:relative;">
+                                    <input id="u-pass" placeholder="Enter password" style="padding-right:35px;" type="password">
+                                    <i class="fa fa-eye pwd-toggle" onclick="toggleUserPwd('u-pass', this)" style="position:absolute; right:12px; top:10px; cursor:pointer; color:var(--text-muted);"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group"><label>Confirm Password <span style="color:#ef4444; font-size:14px;">*</span></label>
+                                <div style="position:relative;">
+                                    <input id="u-pass-confirm" placeholder="Re-type password" style="padding-right:35px;" type="password">
+                                    <i class="fa fa-eye pwd-toggle" onclick="toggleUserPwd('u-pass-confirm', this)" style="position:absolute; right:12px; top:10px; cursor:pointer; color:var(--text-muted);"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group"><label>Role Config <span style="color:#ef4444; font-size:14px;">*</span></label><select id="u-role"><option value="Admin">Master User (Admin)</option><option value="User">Standard User</option></select></div>
+                            <div class="form-group"><label>Status</label><select id="u-status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" style="padding: 15px 20px;">
+                        <div class="form-section-title" style="margin-bottom: 12px;">Personal &amp; Corporate Information</div>
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 15px;">
+                            <div class="form-group"><label>Designation</label>
+                                <div style="display:flex; gap:8px;">
+                                    <select id="u-designation" style="flex:1;"><option value="">Select...</option></select>
+                                    <button class="btn-primary" onclick="addCustomField('designation')" style="padding: 0 15px; border-radius: 6px; font-size:12px;" title="Add New"><i class="fa fa-plus"></i></button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group"><label>Department</label>
+                                <div style="display:flex; gap:8px;">
+                                    <select id="u-department" style="flex:1;"><option value="">Select...</option></select>
+                                    <button class="btn-primary" onclick="addCustomField('department')" style="padding: 0 15px; border-radius: 6px; font-size:12px;" title="Add New"><i class="fa fa-plus"></i></button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group"><label>Organization</label>
+                                <div style="display:flex; gap:8px;">
+                                    <select id="u-organization" style="flex:1;"><option value="">Select...</option></select>
+                                    <button class="btn-primary" onclick="addCustomField('organization')" style="padding: 0 15px; border-radius: 6px; font-size:12px;" title="Add New"><i class="fa fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="form-group"><label>Mobile Number</label><input id="u-mobile" placeholder="Optional" type="text"></div>
+                            <div class="form-group"><label>Email Address</label><input id="u-email" placeholder="Optional" type="email"></div>
+                            <div class="form-group"><label>Address</label><input id="u-address" placeholder="Optional" type="text"></div>
+                            
+                            <div class="form-group" style="display:flex; align-items:flex-end;">
+                                <div id="uDropZone" onclick="document.getElementById('u-pic').click()" onmouseout="this.style.background='rgba(139,92,246,0.05)'" onmouseover="this.style.background='rgba(139,92,246,0.1)'" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px dashed #8b5cf6; background: rgba(139,92,246,0.05); color: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; cursor: pointer; font-size: 13px; font-weight: 600; height: 35px;" tabindex="0" title="Upload Profile Picture">
+                                    <i class="fa fa-user-circle" id="uUploadIcon" style="font-size: 16px;"></i>
+                                    <span id="uUploadText">Upload Photo</span>
+                                    <input accept="image/*" id="u-pic" onchange="handleUserPicUpload(event)" style="display:none;" type="file">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="emailTemplateModal" style="padding: 0 !important;">
+        <div class="modal" style="width: 90vw; max-width: 650px; border-radius: 16px;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <i class="fa fa-arrow-left close-modal-icon" onclick="closeEmailTemplateModal()"></i>
+                    <h3 id="eModalTitle">Add Email Template</h3>
+                </div>
+                <button class="btn-primary" onclick="saveEmailTemplate()"><i class="fa fa-save"></i> SAVE TEMPLATE</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-content-wrap">
+                    <div class="form-section">
+                        <div class="form-section-title">Email Structure</div>
+                        <div class="form-grid" style="grid-template-columns: 1fr;">
+                            <div class="form-group"><label>Template Name</label><input id="et-name" type="text"></div>
+                            <div class="form-group"><label>Email Subject</label><input id="et-subject" type="text"></div>
+                            <div class="form-group"><label>Email Body</label><textarea id="et-body" rows="8" style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid var(--border-input); border-radius: 8px; outline: none; background: var(--bg-input); color: var(--text-main); font-family: 'Poppins'; resize: vertical; min-height: 100px;"></textarea></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div class="modal-overlay" id="bulkModal" style="padding: 0 !important; background: var(--bg-main); z-index: 999999;">
+        <div class="modal" style="width: 100vw; height: 100vh; max-width: 100vw; border-radius: 0; border: none; box-shadow: none;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <i class="fa fa-arrow-left close-modal-icon" onclick="closeBulkModal()"></i>
+                    <h3>Bulk Upload Clients</h3>
+                </div>
+                <button class="btn-primary" id="btnConfirmBulk" onclick="confirmBulkUpload()" style="display:none;"><i class="fa fa-save"></i> <span>CONFIRM &amp; SAVE</span></button>
+            </div>
+            <div class="modal-body" style="padding: 20px 30px;">
+                <div class="modal-content-wrap" style="max-width: 1200px; margin: 0 auto; width: 100%; gap: 15px;">
+                    <!-- Step 1: File Selection Zone -->
+                    <div class="form-section" id="bulkUploadZone" style="padding: 40px 20px; text-align:center;">
+                        <h4 style="color:var(--text-title); margin-bottom: 20px;">Step 1: Upload CSV Data</h4>
+                        <a class="btn-outline" href="javascript:void(0)" onclick="downloadCSVTemplate()" style="display:inline-flex; margin-bottom:30px;"><i class="fa fa-download"></i> Download CSV Template</a>
+                        <div onclick="document.getElementById('csvFileInput').click()" onmouseout="this.style.background='rgba(59,130,246,0.05)'" onmouseover="this.style.background='rgba(59,130,246,0.1)'" style="max-width:500px; margin:0 auto; padding: 40px 20px; border-radius: 12px; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.05); cursor: pointer; transition: 0.3s;" tabindex="0">
+                            <i class="fa fa-file-csv fa-3x" style="color:#3b82f6; margin-bottom:15px;"></i>
+                            <div style="font-size: 16px; font-weight: 600; color:var(--text-main);">Click to Select CSV File</div>
+                            <div style="font-size: 12px; color:var(--text-muted); margin-top:5px;">Only .csv files are supported</div>
+                            <input accept=".csv" id="csvFileInput" onchange="handleCSVPreview(event)" style="display:none;" type="file">
+                        </div>
+                    </div>
+                    <!-- Step 2: Data Preview Zone -->
+                    <div class="form-section" id="bulkPreviewZone" style="display:none; padding: 15px 20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                            <div class="form-section-title" style="margin:0;">Step 2: Data Validation &amp; Preview</div>
+                            <span id="bulkSummary" style="font-size:13px; font-weight:600; padding:5px 15px; background:rgba(59,130,246,0.1); color:#3b82f6; border-radius:20px;"></span>
+                        </div>
+                        <div style="overflow-x:auto; max-height: 60vh; border: 1px solid var(--border-input); border-radius: 8px;">
+                            <table style="width: 100%; white-space: nowrap; border-collapse: collapse; text-align:left;">
+                                <thead style="background: var(--bg-header); position: sticky; top: 0;">
+                                    <tr>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Client Name &amp; Status</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Mobile</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Email</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Address</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Stage</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">URL</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">UID</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Password</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Assigned Person</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Created Date</th>
+                                        <th style="padding:12px; border-bottom:1px solid var(--border-input);">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bulkPreviewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <div class="modal-overlay" id="forgotPassModal" style="z-index: 10000000;">
+        <div class="modal" style="max-width: 500px; height:auto; padding:0; border-radius: 16px;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <h3 style="color:var(--text-title); font-size:18px;"><i class="fa fa-lock"></i> Reset Password</h3>
+                </div>
+                <i class="fa fa-times close-modal-icon" onclick="document.getElementById('forgotPassModal').style.display='none'"></i>
+            </div>
+            <div class="modal-body" id="fp-step-1" style="padding: 25px;">
+                <p style="font-size:13px; color:var(--text-muted); margin-top:0; margin-bottom:15px;">Enter your registered email address to receive an OTP.</p>
+                <div class="form-group"><label>Email Address</label><input id="fp-email" placeholder="example@email.com" type="text"></div>
+                <button class="btn-primary" onclick="sendOTP()" style="width:100%; margin-top:20px; justify-content:center;"><i class="fa fa-paper-plane"></i> Send OTP</button>
+            </div>
+            <div class="modal-body" id="fp-step-2" style="display:none; padding: 25px;">
+                <p style="font-size:13px; color:#10b981; margin-top:0; margin-bottom:15px; font-weight:bold;">OTP Sent to your email!</p>
+                <div class="form-group"><label>Enter 4-Digit OTP</label><input id="fp-otp" maxlength="4" placeholder="• • • •" style="letter-spacing: 15px; text-align: center; font-size: 22px; font-weight: bold; padding: 15px;" type="text"></div>
+                <div class="form-group" style="margin-top:15px;"><label>New Password</label><input id="fp-new-pass" placeholder="Enter new password" type="password"></div>
+                <button class="btn-primary" onclick="verifyOTPAndReset()" style="width:100%; margin-top:20px; background:#10b981; justify-content:center;"><i class="fa fa-check"></i> Set New Password</button>
+            </div>
+        </div>
+    </div>
+  
+    <div class="modal-overlay" id="profileModal" style="padding: 0 !important; background: var(--bg-main); z-index: 999999;">
+        <div class="modal" style="width: 100vw; height: 100vh; max-width: 100vw; border-radius: 0; border: none; box-shadow: none;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('profileModal').style.display='none'"></i> 
+                    <h3 id="pModalTitle">My Profile</h3>
+                </div>
+                <button class="btn-primary" onclick="saveProfile()"><i class="fa fa-save"></i> <span>UPDATE PROFILE</span></button>
+            </div>
+            <div class="modal-body" style="padding: 20px 30px;">
+                <div class="modal-content-wrap" style="max-width: 1200px; margin: 0 auto; width: 100%; gap: 15px;">
+                    <div class="form-section" style="padding: 15px 20px;">
+                        <div class="form-section-title" style="margin-bottom: 12px;">Account Information</div>
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 15px;">
+                            <div class="form-group"><label>Username (ID)</label><input disabled="true" id="p-user" style="background:var(--border-color); color:var(--text-muted); cursor:not-allowed;" type="text"></div>
+                            <div class="form-group"><label>Full Name <span style="color:#ef4444; font-size:14px;">*</span></label><input id="p-name" type="text"></div>
+                            <div class="form-group"><label>Email Address</label><input id="p-email" type="email"></div>
+                            <div class="form-group"><label>New Password <span style="color:#ef4444; font-size:14px;">*</span></label><input id="p-pass" type="text"></div>
+                            
+                            <div class="form-group" style="display:flex; align-items:flex-end;">
+                                <button class="btn-outline" onclick="registerBiometric()" style="width: 100%; height: 35px; justify-content:center; color:#10b981; border-color:#10b981; font-size: 13px;"><i class="fa fa-fingerprint"></i> Enable Fingerprint Login</button>
+                            </div>
+                            
+                            <div class="form-group" style="display:flex; align-items:flex-end;">
+                                <div id="pDropZone" onclick="document.getElementById('p-file').click()" onmouseout="this.style.background='rgba(139,92,246,0.05)'" onmouseover="this.style.background='rgba(139,92,246,0.1)'" style="width: 100%; height: 35px; padding: 0 12px; border-radius: 6px; border: 1px dashed #8b5cf6; background: rgba(139,92,246,0.05); color: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; cursor: pointer; font-size: 13px; font-weight: 600;" tabindex="0" title="Upload Profile Picture">
+                                    <i class="fa fa-image" id="pUploadIcon" style="font-size: 16px;"></i>
+                                    <span id="p-uploadText">Update Picture</span>
+                                    <input accept="image/*" id="p-file" onchange="handleProfilePic(event)" style="display:none;" type="file">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <div class="modal-overlay" id="previewModal" style="z-index: 1006;">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-header-left"><i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('previewModal').style.display='none'"></i><h3>Live Preview</h3></div>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <iframe id="previewFrame" src="" style="width:100%; height:100%; border:none; background:var(--bg-input);"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Stages Modal (Updated) -->
+    <div class="modal-overlay" id="stageManageModal" style="display: none; z-index: 99999999999 !important; background: rgba(0,0,0,0.85);">
+        <div class="modal" style="width: 90%; max-width: 350px; background: var(--bg-card); border-radius: 12px; padding: 20px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-input); padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 18px; color: var(--text-title);"><i class="fa fa-list-ul"></i> Manage Stages</h3>
+                <i class="fa fa-times" onclick="closeStageManage()" style="cursor:pointer; color: var(--text-muted); font-size: 20px;"></i>
+            </div>
+            
+            <div class="modal-body" style="padding: 0;">
+                <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <input id="newStageName" placeholder="Enter New Stage Name" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-input); margin-bottom: 10px; background: var(--bg-input); color: var(--text-main);" type="text">
+                    <button class="btn-primary" onclick="addNewStage()" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: bold;"><i class="fa fa-plus"></i> Add Stage</button>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    <ul id="stageListUl" style="list-style: none; padding: 0; margin: 0;">
+                        <!-- Stages will load here dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <div class="modal-overlay" id="launchModal" style="padding: 0 !important;">
+        <div class="modal" style="position: relative; max-width: 380px; padding: 30px; border-radius: 20px; background: var(--bg-card); box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+            <i class="fa fa-times close-modal-icon" onclick="document.getElementById('launchModal').style.display='none'" onmouseout="this.style.background='var(--bg-input)'; this.style.color='var(--text-muted)';" onmouseover="this.style.background='#ef4444'; this.style.color='#fff';" style="position: absolute; right: 15px; top: 15px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--bg-input); border-radius: 50%; font-size: 14px; color: var(--text-muted); cursor: pointer; transition: 0.3s;"></i>
+            
+            <i class="fa fa-rocket" style="font-size: 45px; color: #8b5cf6; margin-bottom: 5px; text-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);"></i>
+            <h3 style="color:var(--text-title); font-weight:800; font-size:24px; margin:0;">Launchpad</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin:0 0 10px; font-weight: 500;">Quickly copy credentials and launch portal.</p>
+            
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
+                <div onclick="copyText('l-uid')" onmouseout="this.style.borderColor='var(--border-color)'" onmouseover="this.style.borderColor='#8b5cf6'" style="background: var(--bg-input); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; cursor: pointer;">
+                    <div style="text-align: left;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"><i class="fa fa-user"></i> User ID</div>
+                        <div id="l-uid" style="font-family: Poppins; font-size:15px; font-weight:700; color:var(--text-main); margin-top:2px;">N/A</div>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.1); padding: 10px; border-radius: 10px; color: #8b5cf6;"><i class="fa fa-copy fa-lg"></i></div>
+                </div>
+                
+                <div onclick="copyText('l-pass')" onmouseout="this.style.borderColor='var(--border-color)'" onmouseover="this.style.borderColor='#8b5cf6'" style="background: var(--bg-input); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; cursor: pointer;">
+                    <div style="text-align: left;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"><i class="fa fa-lock"></i> Password</div>
+                        <div id="l-pass" style="font-family: Poppins; font-size:15px; font-weight:700; color:var(--text-main); margin-top:2px;">N/A</div>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.1); padding: 10px; border-radius: 10px; color: #8b5cf6;"><i class="fa fa-copy fa-lg"></i></div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" id="l-btn" onmouseout="this.style.transform='translateY(0)'" onmouseover="this.style.transform='translateY(-3px)'" style="width:100%; justify-content:center; background: #8b5cf6; padding: 16px; border-radius: 12px; font-size: 16px; margin-top: 5px; box-shadow: 0 8px 15px rgba(139, 92, 246, 0.25); border: none; transition: all 0.3s;"><i class="fa fa-external-link-alt"></i> Open Client Portal</button>
+        </div>
+    </div>
+
+    <!-- Native App Install Prompt UI -->
+    <div id="pwaInstallPopup" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:#1e293b; padding:25px 20px; border-top-left-radius:25px; border-top-right-radius:25px; z-index:2147483647; box-shadow:0 -10px 25px rgba(0,0,0,0.4); text-align:center;">
+        <h3 style="color:#ffffff; margin:0 0 10px 0; font-size:18px; font-weight:700;">📲 Install Our App</h3>
+        <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">Install our app for a faster, smoother, and more convenient experience.!</p>
+        <div style="display:flex; gap:15px; justify-content:center;">
+            <button onclick="closePwaPopup()" style="padding:12px 24px; border-radius:12px; border:none; background:#334155; color:white; font-weight:600;">Not Now</button>
+            <button id="pwaInstallBtn" style="padding:12px 24px; border-radius:12px; border:none; background:#3b82f6; color:white; font-weight:600;">Install Now</button>
+        </div>
+    </div>
+
+    <!-- Reference to separated JS logic -->
+    <script src="app.js"></script>
+
+</body>
+</html>
