@@ -844,9 +844,10 @@ async function login() {
 }
 
 function logout() {
+    // 1. Supabase channel theke unsubscribe kora
     if (activeUsersChannel) activeUsersChannel.unsubscribe();
-    localStorage.clear();
-    sessionStorage.clear();
+    localStorage.removeItem('cmt_session');
+    sessionStorage.removeItem('cmt_session');
     window.location.replace(window.location.href.split('?')[0]); 
 }
 
