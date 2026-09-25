@@ -5,7 +5,7 @@ if (localStorage.getItem('cmt_theme') === 'dark') {
 
 // --- SUPABASE CONFIGURATION (V2) ---
 const supabaseUrl = 'https://jhbgnbzgzncngrdtnynd.supabase.co';
-const supabaseKey = 'sb_publishable_45OcfQmD0w_pd0AhcjZqQ_rim5OYc-';
+const supabaseKey = 'sb_publishable_45OcfQmD0-w_pd0AhcjZqQ_rim5OYc-';
 const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- GLOBAL VARIABLES ---
