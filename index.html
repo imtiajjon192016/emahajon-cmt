@@ -420,7 +420,7 @@
                     <div class="form-section">
                         <div class="form-section-title">Platform Access &amp; Assignment</div>
                         <div class="form-grid">
-                            <div class="form-group"><label>Client Stage <span class="stage-manage-btn" onclick="openStageManage()"><i class="fa fa-cog"></i> Manage Stages</span></label><select id="m-stage"></select></div>
+                            <div class="form-group"><label>Client Stage <span class="stage-manage-btn" onclick="openStageManage()" style="float: right; border-radius: 6px; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; padding: 0; font-size: 13px;" title="Add/Manage Stages"><i class="fa fa-plus"></i></span></label><select id="m-stage"></select></div>
                             <div class="form-group" id="assignGroup"><label>Assigned To (Person)</label><select id="m-assigned"></select></div>
                             <div class="form-group"><label>Portal Login URL</label><input id="m-url" placeholder="https://" type="text"></div>
                             <div class="form-group"><label>Login User ID</label><input id="m-uid" type="text"></div>
@@ -444,24 +444,6 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="stageModal" style="z-index: 1005;">
-        <div class="modal" style="max-width: 650px; height:auto; padding:0; border-radius: 16px;">
-            <div class="modal-header">
-                <div class="modal-header-left"><h3 style="color:var(--text-title); font-size:18px;"><i class="fa fa-list"></i> Manage Stages</h3></div>
-                <i class="fa fa-times close-modal-icon" onclick="document.getElementById('stageModal').style.display='none'"></i>
-            </div>
-            <div class="modal-body" style="padding: 25px;">
-                <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
-                    <div style="background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 15px;">
-                        <input id="newStageInput" placeholder="New Stage Name" style="padding:15px; border:1px solid var(--border-input); border-radius:8px; background:transparent; color:var(--text-main); font-family:'Poppins'; outline: none;" type="text">
-                        <button class="btn-primary" onclick="addCustomStage()" style="padding:15px; border-radius: 8px; justify-content: center;"><i class="fa fa-plus"></i> Add Stage</button>
-                    </div>
-                    <div id="stageListContainer" style="background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 15px; overflow-y: auto; max-height: 250px; display: flex; flex-direction: column; gap: 10px;">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="modal-overlay" id="userModal" style="padding: 0 !important; background: var(--bg-main); z-index: 999999;">
         <div class="modal" style="width: 100vw; height: 100vh; max-width: 100vw; border-radius: 0; border: none; box-shadow: none;">
@@ -690,26 +672,35 @@
     </div>
 
     <!-- Manage Stages Modal (Updated) -->
-    <div class="modal-overlay" id="stageManageModal" style="display: none; z-index: 99999999999 !important; background: rgba(0,0,0,0.85);">
-        <div class="modal" style="width: 90%; max-width: 350px; background: var(--bg-card); border-radius: 12px; padding: 20px;">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border-input); padding-bottom: 15px; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 18px; color: var(--text-title);"><i class="fa fa-list-ul"></i> Manage Stages</h3>
-                <i class="fa fa-times" onclick="closeStageManage()" style="cursor:pointer; color: var(--text-muted); font-size: 20px;"></i>
+    <!-- Manage Stages Modal (Professional & Compact) -->
+<div class="modal-overlay" id="stageManageModal" style="z-index: 99999999; display: none;">
+    <div class="modal" style="width: 90%; max-width: 400px; padding: 0; border-radius: 16px;">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h3 style="color:var(--text-title); font-size:18px;"><i class="fa fa-list"></i> Stages</h3>
             </div>
-            
-            <div class="modal-body" style="padding: 0;">
-                <div style="background: var(--bg-main); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <input id="newStageName" placeholder="Enter New Stage Name" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-input); margin-bottom: 10px; background: var(--bg-input); color: var(--text-main);" type="text">
-                    <button class="btn-primary" onclick="addNewStage()" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: bold;"><i class="fa fa-plus"></i> Add Stage</button>
+            <i class="fa fa-times close-modal-icon" onclick="closeStageManage()"></i>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                
+                <!-- Compact Input Box -->
+                <div style="display: flex; gap: 10px; background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 12px;">
+                    <input id="newStageName" placeholder="New Stage Name" style="flex: 1; min-width: 0; padding: 8px 12px; border: 1px solid var(--border-input); border-radius: 8px; background: transparent; color: var(--text-main); font-family: 'Poppins'; outline: none; font-size: 13px;" type="text">
+                    <button class="btn-primary" onclick="addNewStage()" style="padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 13px; white-space: nowrap;"><i class="fa fa-plus"></i> Add</button>
                 </div>
-                <div style="max-height: 200px; overflow-y: auto;">
-                    <ul id="stageListUl" style="list-style: none; padding: 0; margin: 0;">
-                        <!-- Stages will load here dynamically -->
+
+                <!-- Scrollable Stage List -->
+                <div style="background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 12px; padding: 15px; max-height: 250px; overflow-y: auto;">
+                    <ul id="stageListUl" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Stages dynamically loaded by JS -->
                     </ul>
                 </div>
+
             </div>
         </div>
     </div>
+</div>
   
     <div class="modal-overlay" id="launchModal" style="padding: 0 !important;">
         <div class="modal" style="position: relative; max-width: 380px; padding: 30px; border-radius: 20px; background: var(--bg-card); box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center; display: flex; flex-direction: column; gap: 15px; align-items: center;">
