@@ -166,6 +166,7 @@
                     <!-- Communication -->
                     <li class="menu-header desktop-only">Communication</li>
                     <li><a href="javascript:void(0)" id="nav-emails" onclick="switchTab('emails')"><i class="fa fa-envelope"></i> Email Templates <span class="menu-badge desktop-only">New</span></a></li>
+                    <li><a href="javascript:void(0)" id="nav-notes" onclick="switchTab('notes')"><i class="fa fa-sticky-note"></i> Team Notes</a></li>
                 </ul>
             </div>
         </aside>
@@ -289,11 +290,6 @@
                     </div>
                     <div class="kanban-board" id="boardViewWrapper"></div>
 
-                    <div style="margin-top: 30px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin:0; color:var(--text-title); font-size:16px;"><i class="fa fa-sticky-note" style="color:#f59e0b;"></i> Team Pinboard</h4>
-                        <button class="btn-outline" onclick="addStickyNote()"><i class="fa fa-plus"></i> Add Note</button>
-                    </div>
-                    <div class="sticky-notes-board" id="stickyNotesBoard"></div>
                 </div>
 
                 <!-- Active Users -->
@@ -353,6 +349,27 @@
                     <div class="table-container" id="userTableContainer"></div>
                 </div>
 
+<!-- System Users -->
+<div class="tab-panel" id="tab-users">
+    <div class="controls">
+        <h3 style="margin:0; color:var(--text-title); font-weight: 700;">System Users Config</h3>
+        <button class="btn-primary" onclick="openUserModal('add')"><i class="fa fa-user-plus"></i> Create User</button>
+    </div>
+    <div class="table-container" id="userTableContainer"></div>
+</div>
+
+<!-- Notun Team Notes Tab EKHANE BOSBE -->
+<div class="tab-panel" id="tab-notes">
+    <div class="controls">
+        <h3 style="margin:0; color:var(--text-title); font-weight: 700;"><i class="fa fa-sticky-note" style="color:#f59e0b;"></i> Team Notes</h3>
+        <button class="btn-primary" onclick="addStickyNote()"><i class="fa fa-plus"></i> Add New Note</button>
+    </div>
+    <div class="sticky-notes-board" id="stickyNotesBoard" style="margin-top: 10px;"></div>
+</div>
+
+</div> <!-- Eta apnar Line 351 er closing div -->
+</main>
+
             </div>
         </main>
 
@@ -372,6 +389,7 @@
                     <div class="smart-menu-item" onclick="switchTab('emails'); toggleSmartMenu()"><i class="fa fa-envelope-open-text"></i> Emails</div>
                     <div class="smart-menu-item" onclick="switchTab('team'); toggleSmartMenu()"><i class="fa fa-users"></i> Team</div>
                     <div class="smart-menu-item" id="smartUserManageBtn" onclick="switchTab('users'); toggleSmartMenu()"><i class="fa fa-cog"></i> Setup</div>
+                    <div class="smart-menu-item" onclick="switchTab('notes'); toggleSmartMenu()"><i class="fa fa-sticky-note"></i> Team Notes</div>
                 </div>
             </div>
         </div>
