@@ -2306,3 +2306,117 @@ function renderTeamActivity() {
 }
 
 function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); showToast("Copied to Clipboard!"); }
+
+// --- LOGIN SCREEN LAMP & MASCOT (HELPER) LOGIC ---
+let helperBusy = false;
+
+function toggleLamp() { 
+    initAudio();
+    const cord = document.getElementById('lampCord'); 
+    const loginScreen = document.getElementById('loginScreen'); 
+    
+    playSound('click'); 
+    cord.classList.add('pulled'); 
+    setTimeout(() => { cord.classList.remove('pulled'); }, 200); 
+    
+    loginScreen.classList.toggle('lamp-on'); 
+    if (loginScreen.classList.contains('lamp-on')) { 
+        setTimeout(() => { playSound('flicker'); }, 100); 
+        if (window.innerWidth > 768) {
+            setTimeout(() => { document.getElementById('user').focus(); }, 800); 
+        }
+    } 
+}
+
+function askHelper() { 
+    initAudio(); 
+    if(helperBusy) return; 
+    helperBusy = true; 
+    
+    const helper = document.getElementById('helperPerson'); 
+    const cssMan = document.getElementById('cssMan');
+    const speech = document.getElementById('helperSpeech'); 
+    const loginScreen = document.getElementById('loginScreen'); 
+    const isCurrentlyOn = loginScreen.classList.contains('lamp-on'); 
+    
+    cssMan.classList.remove('waving');
+    speech.style.opacity = '0'; 
+    
+    cssMan.classList.add('salam-pose');
+    
+    if ('speechSynthesis' in window) {
+        let greetingText = isCurrentlyOn 
+            ? "আসসালামু আলাইকুম স্যার, আমি লাইটটি অফ করে দিচ্ছি।" 
+            : "আসসালামু আলাইকুম স্যার, সি এম টি সিস্টেমে আপনাকে স্বাগতম। আমি লাইটটি অন করে দিচ্ছি।";
+        let msg = new SpeechSynthesisUtterance(greetingText);
+        msg.lang = 'bn-BD'; 
+        msg.rate = 0.9;
+        window.speechSynthesis.speak(msg);
+    }
+    
+    setTimeout(() => {
+        cssMan.classList.remove('salam-pose');
+        cssMan.style.transform = 'scaleX(-1) scale(1.3)'; 
+        helper.classList.add('walking'); 
+        
+        let stepInterval = setInterval(()=> playSound('step'), 250);
+        helper.style.left = '28%'; 
+        
+        setTimeout(() => { 
+            clearInterval(stepInterval); 
+            helper.classList.remove('walking'); 
+            
+            cssMan.classList.add('looking-up');
+            helper.classList.add('pointing');
+            
+            setTimeout(() => { 
+                document.querySelector('.remote .led').classList.add('flash');
+                playSound('click'); 
+                
+                setTimeout(() => { 
+                    document.querySelector('.remote .led').classList.remove('flash');
+                    toggleLamp(); 
+                    
+                    setTimeout(() => { 
+                        helper.classList.remove('pointing');
+                        cssMan.classList.remove('looking-up');
+                        
+                        cssMan.style.transform = 'scaleX(1) scale(1.3)'; 
+                        helper.classList.add('walking'); 
+                        stepInterval = setInterval(()=> playSound('step'), 250); 
+                        helper.style.left = '80%'; 
+                        
+                        setTimeout(() => { 
+                            clearInterval(stepInterval); 
+                            helper.classList.remove('walking'); 
+                            helperBusy = false; 
+                        }, 1500); 
+                    }, 500); 
+                }, 150); 
+            }, 400); 
+        }, 1500); 
+    }, 3000);
+}
+
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if(type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    } else if(type === 'flicker') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if(type === 'step') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    }
+}
