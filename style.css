@@ -1093,3 +1093,38 @@ input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-colo
     align-items: center;
     transition: var(--theme-transition);
 }
+
+/* --- DASHBOARD PREMIUM UI ENHANCEMENTS --- */
+/* Give cards a better lift and definition in Light Mode */
+.glass-card {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(0,0,0,0.03) !important;
+}
+[data-theme="dark"] .glass-card {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+/* Vibrant Waves for Light Mode */
+.wave-blue::before, .wave-blue::after { background: rgba(59, 130, 246, 0.22); }
+.wave-green::before, .wave-green::after { background: rgba(16, 185, 129, 0.22); }
+.wave-red::before, .wave-red::after { background: rgba(239, 68, 68, 0.22); }
+.wave-yellow::before, .wave-yellow::after { background: rgba(245, 158, 11, 0.22); }
+
+/* Colored Icons for maximum Pop in both themes */
+.wave-blue i { color: #3b82f6 !important; opacity: 0.25 !important; transform: scale(1.1); transition: 0.3s; }
+.wave-green i { color: #10b981 !important; opacity: 0.25 !important; transform: scale(1.1); transition: 0.3s; }
+.wave-red i { color: #ef4444 !important; opacity: 0.25 !important; transform: scale(1.1); transition: 0.3s; }
+.wave-yellow i { color: #f59e0b !important; opacity: 0.25 !important; transform: scale(1.1); transition: 0.3s; }
+
+/* Dynamic Hover effects for icons */
+.glass-card:hover i { transform: scale(1.25) rotate(-10deg); opacity: 0.45 !important; }
+
+/* Chart Cards Enhancement */
+.dash-card {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+    border: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .dash-card {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+}

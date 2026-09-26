@@ -1253,10 +1253,15 @@ function renderAdminDashboard() {
     animateNum('dashInactiveClients', inactiveC); 
     animateNum('dashTotalUsers', totalUsers); 
     
-    let textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#333'; 
+    // Fetch actual CSS variables dynamically to fix Chart.js black border issue
+    let style = getComputedStyle(document.body);
+    let textColor = style.getPropertyValue('--text-main').trim() || '#333'; 
+    let cardBgColor = style.getPropertyValue('--bg-card').trim() || '#ffffff';
+    let gridColor = style.getPropertyValue('--border-color').trim() || 'rgba(0,0,0,0.1)';
+    
     let chartLabels = Object.keys(stageCounts).map(s => `${s} (${stageCounts[s]})`); 
     
-    // Doughnut Chart (Client Stages) - Updated with Cutout for sleek look
+    // Doughnut Chart (Client Stages) - Sleek & Modern Look
     if (stageChartInstance) stageChartInstance.destroy(); 
     let stageCtx = document.getElementById('stageChart').getContext('2d'); 
     stageChartInstance = new Chart(stageCtx, { 
@@ -1266,25 +1271,31 @@ function renderAdminDashboard() {
             datasets: [{ 
                 data: Object.values(stageCounts), 
                 backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'], 
-                borderWidth: 3, 
-                borderColor: 'var(--bg-card)',
-                hoverOffset: 5
+                borderWidth: 5, 
+                borderColor: cardBgColor, // Seamlessly blends with Light/Dark Mode card background
+                hoverOffset: 8
             }] 
         }, 
         options: { 
             responsive: true, 
             maintainAspectRatio: false, 
-            cutout: '70%',
+            cutout: '72%', // Thinner, more elegant ring
             plugins: { 
                 legend: { 
                     position: 'right', 
-                    labels: { color: textColor, font: { family: 'Poppins', size: 12 }, padding: 15 } 
+                    labels: { 
+                        color: textColor, 
+                        font: { family: 'Poppins', size: 12 }, 
+                        padding: 20,
+                        usePointStyle: true, // Changes legend boxes to premium circles
+                        pointStyle: 'circle'
+                    } 
                 } 
             } 
         } 
     }); 
     
-    // Bar Chart (Team Workload) - Fixed large bar width issue
+    // Bar Chart (Team Workload) - Perfected Grid Lines & Bar Width
     if (workloadChartInstance) workloadChartInstance.destroy(); 
     let workCtx = document.getElementById('workloadChart').getContext('2d'); 
     workloadChartInstance = new Chart(workCtx, { 
@@ -1295,16 +1306,23 @@ function renderAdminDashboard() {
                 label: 'Clients Assigned', 
                 data: Object.values(assignCounts), 
                 backgroundColor: '#3b82f6', 
-                borderRadius: 8,
-                maxBarThickness: 50 // Ensures bars don't take full width if there's only 1 user
+                borderRadius: 6,
+                maxBarThickness: 45 // Prevents single bars from becoming gigantically wide
             }] 
         }, 
         options: { 
             responsive: true, 
             maintainAspectRatio: false, 
             scales: { 
-                y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { color: textColor, font: { family: 'Poppins' }, precision: 0 } }, 
-                x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Poppins' } } } 
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: gridColor, drawBorder: false }, 
+                    ticks: { color: textColor, font: { family: 'Poppins' }, precision: 0, padding: 10 } 
+                }, 
+                x: { 
+                    grid: { display: false, drawBorder: false }, 
+                    ticks: { color: textColor, font: { family: 'Poppins' }, padding: 10 } 
+                } 
             }, 
             plugins: { legend: { display: false } } 
         } 
