@@ -376,7 +376,6 @@ async function fetchStickyNotes() {
     if(!error && data) { stickyNotes = data; renderStickyNotes(); }
 }
 
-askNotificationPermission(); // Eta browser e permission popup dekhabe
 
 function renderStickyNotes() {
     let board = document.getElementById('stickyNotesBoard'); 
@@ -1333,6 +1332,20 @@ function openProfileModal() {
     document.getElementById('p-pass').value = p; 
     document.getElementById('p-uploadText').innerText = "Click to Update Picture"; 
     pUploadedBase64 = ""; pUploadedFileName = ""; pUploadedMimeType = ""; 
+// --- Notification Status Check for Profile Modal ---
+let notifBtn = document.getElementById('notifBtn');
+if(notifBtn) {
+    let notifPref = localStorage.getItem('cmt_notif_pref');
+    if(notifPref === 'enabled' && "Notification" in window && Notification.permission === "granted") {
+        notifBtn.innerText = "Disable";
+        notifBtn.style.background = "rgba(239, 68, 68, 0.1)"
+        notifBtn.style.color = "#ef4444";
+    } else {
+        notifBtn.innerText = "Enable";
+        notifBtn.style.background = "#3b82f6"; 
+        notifBtn.style.color = "#fff";
+    }
+}
     document.getElementById('profileModal').style.display = 'flex'; 
 }
 
@@ -3711,18 +3724,58 @@ function askNotificationPermission() {
 }
 
 function sendNativeNotification(title, body) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        // Removed visibility check for testing, it will always fire now
-        const options = {
-            body: body,
-            icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
-            vibrate: [200, 100, 200]
-        };
-        let nativeNotif = new Notification(title, options);
+    try {
+        if (!("Notification" in window)) return;
         
-        nativeNotif.onclick = function() {
-            window.focus();
-            this.close();
-        };
+        // Check if user has explicitly enabled it in Profile
+        let notifPref = localStorage.getItem('cmt_notif_pref');
+        
+        if (notifPref === 'enabled' && Notification.permission === "granted") {
+            const options = {
+                body: body,
+                icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
+                vibrate: [200, 100, 200]
+            };
+            let nativeNotif = new Notification(title, options);
+            
+            nativeNotif.onclick = function() {
+                window.focus();
+                this.close();
+            };
+        }
+    } catch (error) {
+        console.warn("Failed to send notification:", error);
+    }
+}
+
+// --- NOTIFICATION TOGGLE & HANDLER ---
+function toggleNotifications() {
+    let btn = document.getElementById('notifBtn');
+    let currentPref = localStorage.getItem('cmt_notif_pref');
+
+    if (currentPref === 'enabled') {
+        // User wants to disable
+        localStorage.setItem('cmt_notif_pref', 'disabled');
+        btn.innerText = "Enable";
+        btn.style.background = "#3b82f6"; // Blue
+        btn.style.color = "#fff";
+        showToast("Device notifications disabled.", "info");
+    } else {
+        // User wants to enable
+        if (!("Notification" in window)) {
+            return Swal.fire('Not Supported', 'Your device/browser does not support notifications.', 'error');
+        }
+        
+        Notification.requestPermission().then(permission => {
+            if(permission === "granted") {
+                localStorage.setItem('cmt_notif_pref', 'enabled');
+                btn.innerText = "Disable";
+                btn.style.background = "rgba(239, 68, 68, 0.1)"; // Light Red
+                btn.style.color = "#ef4444";
+                showToast("Device notifications enabled!", "success");
+            } else {
+                Swal.fire('Permission Denied', 'Please allow notifications from your browser settings.', 'warning');
+            }
+        });
     }
 }
