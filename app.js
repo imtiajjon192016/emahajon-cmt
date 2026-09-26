@@ -2281,8 +2281,10 @@ function openUserModal(mode, idx=null, rIdx=null) {
         document.getElementById('u-address').value=''; 
         document.getElementById('u-create-date').value = getTodayStr(); 
         document.getElementById('u-pic').value = '';
-        document.getElementById('u-pin').value = r.otp || '';
         document.getElementById('u-status').value = 'Active';
+        
+        let pinEl = document.getElementById('u-pin');
+        if(pinEl) pinEl.value = '';
 
    } else { 
         let r = globalUserData[idx]; 
@@ -2299,16 +2301,25 @@ function openUserModal(mode, idx=null, rIdx=null) {
         document.getElementById('u-name').value = r.username || ''; 
         document.getElementById('u-role').value = r.role || 'User'; 
         document.getElementById('u-status').value = r.isactive === 1 ? 'Active' : 'Inactive'; 
-        document.getElementById('u-create-date').value = String(r.createdate || '').replace(/^'/, '') || getTodayStr(); 
+        
+        // --- DATE FORMAT FIX ---
+        // Splits the database ISO string at 'T' to extract strictly the YYYY-MM-DD part
+        let cDateVal = r.createdate ? String(r.createdate).split('T')[0] : getTodayStr();
+        document.getElementById('u-create-date').value = cDateVal; 
+        
         document.getElementById('u-email').value = r.email || '';
         document.getElementById('u-mobile').value = r.mobilenumber || '';
         document.getElementById('u-designation').value = r.designation || '';
         document.getElementById('u-department').value = r.department || '';
         document.getElementById('u-organization').value = r.organization || '';
         document.getElementById('u-address').value = r.address || '';
+        
+        // --- BIND OTP TO EDIT MODE ---
+        let pinEl = document.getElementById('u-pin');
+        if(pinEl) pinEl.value = r.otp || '';
     } 
     document.getElementById('userModal').style.display='flex'; 
-} 
+}
 
 function closeUserModal() { document.getElementById('userModal').style.display='none'; }
 
