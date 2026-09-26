@@ -2328,95 +2328,988 @@ function toggleLamp() {
     } 
 }
 
-function askHelper() { 
-    initAudio(); 
-    if(helperBusy) return; 
-    helperBusy = true; 
-    
-    const helper = document.getElementById('helperPerson'); 
+// ============================================================
+// CMT SMART AI HELPER
+// Professional Voice + Mascot Animation + Lamp Control
+// ============================================================
+
+function askHelper() {
+
+    // --------------------------------------------------------
+    // AUDIO INITIALIZATION
+    // --------------------------------------------------------
+
+    initAudio();
+
+    // Prevent double trigger
+    if (helperBusy) return;
+
+    helperBusy = true;
+
+
+    // --------------------------------------------------------
+    // DOM ELEMENTS
+    // --------------------------------------------------------
+
+    const helper = document.getElementById('helperPerson');
     const cssMan = document.getElementById('cssMan');
-    const speech = document.getElementById('helperSpeech'); 
-    const loginScreen = document.getElementById('loginScreen'); 
-    const isCurrentlyOn = loginScreen.classList.contains('lamp-on'); 
-    
-    cssMan.classList.remove('waving');
-    speech.style.opacity = '0'; 
-    
-    cssMan.classList.add('salam-pose');
-    
-    if ('speechSynthesis' in window) {
-        let greetingText = isCurrentlyOn 
-            ? "আসসালামু আলাইকুম স্যার, আমি লাইটটি অফ করে দিচ্ছি।" 
-            : "আসসালামু আলাইকুম স্যার, সি এম টি সিস্টেমে আপনাকে স্বাগতম। আমি লাইটটি অন করে দিচ্ছি।";
-        let msg = new SpeechSynthesisUtterance(greetingText);
-        msg.lang = 'bn-BD'; 
-        msg.rate = 0.9;
-        window.speechSynthesis.speak(msg);
+    const speech = document.getElementById('helperSpeech');
+    const loginScreen = document.getElementById('loginScreen');
+
+
+    // Safety check
+    if (!helper || !cssMan || !speech || !loginScreen) {
+
+        console.warn(
+            'CMT Helper: Required HTML element not found.'
+        );
+
+        helperBusy = false;
+        return;
     }
-    
-    setTimeout(() => {
-        cssMan.classList.remove('salam-pose');
-        cssMan.style.transform = 'scaleX(-1) scale(1.3)'; 
-        helper.classList.add('walking'); 
-        
-        let stepInterval = setInterval(()=> playSound('step'), 250);
-        helper.style.left = '28%'; 
-        
-        setTimeout(() => { 
-            clearInterval(stepInterval); 
-            helper.classList.remove('walking'); 
-            
-            cssMan.classList.add('looking-up');
-            helper.classList.add('pointing');
-            
-            setTimeout(() => { 
-                document.querySelector('.remote .led').classList.add('flash');
-                playSound('click'); 
-                
-                setTimeout(() => { 
-                    document.querySelector('.remote .led').classList.remove('flash');
-                    toggleLamp(); 
-                    
-                    setTimeout(() => { 
-                        helper.classList.remove('pointing');
-                        cssMan.classList.remove('looking-up');
-                        
-                        cssMan.style.transform = 'scaleX(1) scale(1.3)'; 
-                        helper.classList.add('walking'); 
-                        stepInterval = setInterval(()=> playSound('step'), 250); 
-                        helper.style.left = '80%'; 
-                        
-                        setTimeout(() => { 
-                            clearInterval(stepInterval); 
-                            helper.classList.remove('walking'); 
-                            helperBusy = false; 
-                        }, 1500); 
-                    }, 500); 
-                }, 150); 
-            }, 400); 
-        }, 1500); 
-    }, 3000);
+
+
+    // --------------------------------------------------------
+    // CURRENT LAMP STATE
+    // --------------------------------------------------------
+
+    const isCurrentlyOn =
+        loginScreen.classList.contains('lamp-on');
+
+
+    // --------------------------------------------------------
+    // RESET OLD STATES
+    // --------------------------------------------------------
+
+    cssMan.classList.remove(
+        'waving',
+        'looking-up',
+        'salam-pose'
+    );
+
+    helper.classList.remove(
+        'walking',
+        'pointing'
+    );
+
+
+    // Reset movement guard
+    helper.dataset.movementStarted = 'false';
+
+
+    // --------------------------------------------------------
+    // STOP OLD SPEECH
+    // --------------------------------------------------------
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
+
+    // ========================================================
+    // INITIAL SPEECH BUBBLE
+    // ========================================================
+
+    speech.innerText = isCurrentlyOn
+        ? 'CMT going offline...'
+        : 'আসসালামু আলাইকুম, স্যার...';
+
+    speech.style.opacity = '1';
+
+    cssMan.classList.add('salam-pose');
+
+
+    // ========================================================
+    // VOICE ENGINE
+    // ========================================================
+
+    function getVoices() {
+
+        if (!('speechSynthesis' in window)) {
+            return [];
+        }
+
+        return window.speechSynthesis.getVoices() || [];
+    }
+
+
+    // --------------------------------------------------------
+    // Find a suitable voice
+    // --------------------------------------------------------
+
+    function findVoice(language) {
+
+        const voices = getVoices();
+
+        if (!voices.length) {
+            return null;
+        }
+
+        const targetLanguage =
+            language.toLowerCase();
+
+        const languagePrefix =
+            targetLanguage.split('-')[0];
+
+
+        // Names commonly associated with female/smooth voices
+        const femaleNames = [
+            'female',
+            'zira',
+            'samantha',
+            'susan',
+            'karen',
+            'victoria',
+            'moira',
+            'jenny',
+            'aria',
+            'sara',
+            'hazel',
+            'google uk english female',
+            'google us english female'
+        ];
+
+
+        // 1. Exact language + female voice
+        let voice = voices.find(v => {
+
+            const voiceLanguage =
+                (v.lang || '').toLowerCase();
+
+            const voiceName =
+                (v.name || '').toLowerCase();
+
+            const languageMatch =
+                voiceLanguage === targetLanguage;
+
+            const femaleMatch =
+                femaleNames.some(name =>
+                    voiceName.includes(name)
+                );
+
+            return languageMatch && femaleMatch;
+        });
+
+
+        if (voice) return voice;
+
+
+        // 2. Same language + female voice
+        voice = voices.find(v => {
+
+            const voiceLanguage =
+                (v.lang || '').toLowerCase();
+
+            const voiceName =
+                (v.name || '').toLowerCase();
+
+            const languageMatch =
+                voiceLanguage.startsWith(languagePrefix);
+
+            const femaleMatch =
+                femaleNames.some(name =>
+                    voiceName.includes(name)
+                );
+
+            return languageMatch && femaleMatch;
+        });
+
+
+        if (voice) return voice;
+
+
+        // 3. Bengali fallback
+        if (languagePrefix === 'bn') {
+
+            voice = voices.find(v => {
+
+                const voiceLanguage =
+                    (v.lang || '').toLowerCase();
+
+                return voiceLanguage.startsWith('bn');
+            });
+
+            if (voice) return voice;
+        }
+
+
+        // 4. Exact language
+        voice = voices.find(v => {
+
+            const voiceLanguage =
+                (v.lang || '').toLowerCase();
+
+            return voiceLanguage === targetLanguage;
+        });
+
+
+        if (voice) return voice;
+
+
+        // 5. Language prefix
+        voice = voices.find(v => {
+
+            const voiceLanguage =
+                (v.lang || '').toLowerCase();
+
+            return voiceLanguage.startsWith(languagePrefix);
+        });
+
+
+        if (voice) return voice;
+
+
+        // 6. Final fallback
+        return voices[0] || null;
+    }
+
+
+    // --------------------------------------------------------
+    // Speak function
+    // --------------------------------------------------------
+
+    function speak(text, language, options = {}) {
+
+        return new Promise(resolve => {
+
+            if (!('speechSynthesis' in window)) {
+                resolve();
+                return;
+            }
+
+
+            const utterance =
+                new SpeechSynthesisUtterance(text);
+
+
+            utterance.lang =
+                language || 'bn-BD';
+
+
+            utterance.rate =
+                options.rate ?? 0.84;
+
+
+            utterance.pitch =
+                options.pitch ?? 1.03;
+
+
+            utterance.volume =
+                options.volume ?? 1;
+
+
+            const selectedVoice =
+                findVoice(language);
+
+
+            if (selectedVoice) {
+                utterance.voice =
+                    selectedVoice;
+            }
+
+
+            let finished = false;
+
+
+            const finish = () => {
+
+                if (finished) return;
+
+                finished = true;
+
+                resolve();
+            };
+
+
+            utterance.onend = finish;
+
+            utterance.onerror = finish;
+
+
+            window.speechSynthesis.speak(
+                utterance
+            );
+        });
+    }
+
+
+    // --------------------------------------------------------
+    // Small delay helper
+    // --------------------------------------------------------
+
+    function wait(ms) {
+
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        });
+    }
+
+
+    // ========================================================
+    // PLAY PROFESSIONAL GREETING
+    // ========================================================
+
+    async function playGreeting() {
+
+        if (!('speechSynthesis' in window)) {
+            return;
+        }
+
+
+        // Make sure previous speech is gone
+        window.speechSynthesis.cancel();
+
+        await wait(120);
+
+
+        // ====================================================
+        // SYSTEM ON
+        // ====================================================
+
+        if (!isCurrentlyOn) {
+
+            // -----------------------------------------------
+            // 1. SALAM
+            // -----------------------------------------------
+
+            speech.innerText =
+                'আসসালামু আলাইকুম, স্যার...';
+
+
+            await speak(
+                'আসসালামু আলাইকুম, স্যার।',
+                'bn-BD',
+                {
+                    rate: 0.80,
+                    pitch: 1.04,
+                    volume: 1
+                }
+            );
+
+
+            // Natural pause
+            await wait(350);
+
+
+            // -----------------------------------------------
+            // 2. SYSTEM ONLINE
+            // -----------------------------------------------
+
+            speech.innerText =
+                'CMT is online.';
+
+
+            await speak(
+                'CMT is online.',
+                'en-US',
+                {
+                    rate: 0.84,
+                    pitch: 1.02,
+                    volume: 1
+                }
+            );
+
+
+            await wait(250);
+
+
+            // -----------------------------------------------
+            // 3. FINAL BANGLA CONFIRMATION
+            // -----------------------------------------------
+
+            speech.innerText =
+                'আপনার জন্য সিস্টেম প্রস্তুত।';
+
+
+            await speak(
+                'আপনার জন্য সিস্টেম প্রস্তুত।',
+                'bn-BD',
+                {
+                    rate: 0.82,
+                    pitch: 1.04,
+                    volume: 1
+                }
+            );
+        }
+
+
+        // ====================================================
+        // SYSTEM OFF
+        // ====================================================
+
+        else {
+
+            // -----------------------------------------------
+            // 1. OFFLINE
+            // -----------------------------------------------
+
+            speech.innerText =
+                'CMT going offline...';
+
+
+            await speak(
+                'CMT going offline.',
+                'en-US',
+                {
+                    rate: 0.82,
+                    pitch: 1.02,
+                    volume: 1
+                }
+            );
+
+
+            await wait(300);
+
+
+            // -----------------------------------------------
+            // 2. FAREWELL
+            // -----------------------------------------------
+
+            speech.innerText =
+                'আবার দেখা হবে, স্যার।';
+
+
+            await speak(
+                'আবার দেখা হবে, স্যার।',
+                'bn-BD',
+                {
+                    rate: 0.82,
+                    pitch: 1.04,
+                    volume: 1
+                }
+            );
+        }
+    }
+
+
+    // ========================================================
+    // START GREETING
+    // ========================================================
+
+    async function startGreeting() {
+
+        try {
+
+            // Wait for browser voices if necessary
+            if (
+                'speechSynthesis' in window &&
+                getVoices().length === 0
+            ) {
+
+                await new Promise(resolve => {
+
+                    let resolved = false;
+
+
+                    const finish = () => {
+
+                        if (resolved) return;
+
+                        resolved = true;
+
+                        window.speechSynthesis
+                            .removeEventListener(
+                                'voiceschanged',
+                                finish
+                            );
+
+                        resolve();
+                    };
+
+
+                    window.speechSynthesis
+                        .addEventListener(
+                            'voiceschanged',
+                            finish
+                        );
+
+
+                    // Fallback
+                    setTimeout(
+                        finish,
+                        1000
+                    );
+                });
+            }
+
+
+            await playGreeting();
+
+
+        } catch (error) {
+
+            console.warn(
+                'CMT Voice Error:',
+                error
+            );
+
+        } finally {
+
+            // Speech finished
+            startHelperMovement();
+        }
+    }
+
+
+    // ========================================================
+    // START VOICE
+    // ========================================================
+
+    startGreeting();
+
+
+    // ========================================================
+    // MASCOT MOVEMENT
+    // ========================================================
+
+    function startHelperMovement() {
+
+        // Prevent duplicate movement
+        if (
+            helper.dataset.movementStarted === 'true'
+        ) {
+            return;
+        }
+
+
+        helper.dataset.movementStarted =
+            'true';
+
+
+        // ----------------------------------------------------
+        // Hide speech bubble
+        // ----------------------------------------------------
+
+        speech.style.opacity = '0';
+
+        cssMan.classList.remove(
+            'salam-pose'
+        );
+
+
+        // ----------------------------------------------------
+        // Turn toward remote
+        // ----------------------------------------------------
+
+        cssMan.style.transform =
+            'scaleX(-1) scale(1.3)';
+
+
+        helper.classList.add(
+            'walking'
+        );
+
+
+        let stepInterval =
+            setInterval(
+                () => playSound('step'),
+                250
+            );
+
+
+        // ----------------------------------------------------
+        // Move to remote
+        // ----------------------------------------------------
+
+        helper.style.left = '28%';
+
+
+        setTimeout(() => {
+
+            clearInterval(stepInterval);
+
+
+            helper.classList.remove(
+                'walking'
+            );
+
+
+            cssMan.classList.add(
+                'looking-up'
+            );
+
+
+            helper.classList.add(
+                'pointing'
+            );
+
+
+            // ------------------------------------------------
+            // Prepare to press remote
+            // ------------------------------------------------
+
+            setTimeout(() => {
+
+                const led =
+                    document.querySelector(
+                        '.remote .led'
+                    );
+
+
+                if (led) {
+                    led.classList.add(
+                        'flash'
+                    );
+                }
+
+
+                playSound('click');
+
+
+                // ------------------------------------------------
+                // Toggle lamp
+                // ------------------------------------------------
+
+                setTimeout(() => {
+
+                    if (led) {
+                        led.classList.remove(
+                            'flash'
+                        );
+                    }
+
+
+                    // Main existing function
+                    toggleLamp();
+
+
+                    // Premium confirmation sound
+                    setTimeout(() => {
+
+                        if (isCurrentlyOn) {
+
+                            // Lamp was ON → now OFF
+                            playSound(
+                                'offline'
+                            );
+
+                        } else {
+
+                            // Lamp was OFF → now ON
+                            playSound(
+                                'online'
+                            );
+                        }
+
+                    }, 100);
+
+
+                    // ------------------------------------------------
+                    // Return
+                    // ------------------------------------------------
+
+                    setTimeout(() => {
+
+                        helper.classList.remove(
+                            'pointing'
+                        );
+
+
+                        cssMan.classList.remove(
+                            'looking-up'
+                        );
+
+
+                        cssMan.style.transform =
+                            'scaleX(1) scale(1.3)';
+
+
+                        helper.classList.add(
+                            'walking'
+                        );
+
+
+                        stepInterval =
+                            setInterval(
+                                () => playSound('step'),
+                                250
+                            );
+
+
+                        helper.style.left =
+                            '80%';
+
+
+                        // ------------------------------------------------
+                        // Finish
+                        // ------------------------------------------------
+
+                        setTimeout(() => {
+
+                            clearInterval(
+                                stepInterval
+                            );
+
+
+                            helper.classList.remove(
+                                'walking'
+                            );
+
+
+                            helper.dataset
+                                .movementStarted =
+                                'false';
+
+
+                            helperBusy =
+                                false;
+
+
+                        }, 1500);
+
+
+                    }, 550);
+
+
+                }, 180);
+
+
+            }, 500);
+
+
+        }, 1500);
+    }
 }
 
+
+
+// ============================================================
+// CMT SOUND EFFECT SYSTEM
+// ============================================================
+
 function playSound(type) {
-    if(!audioCtx) return;
-    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    if(type === 'click') {
-        osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    } else if(type === 'flicker') {
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(60, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-    } else if(type === 'step') {
-        osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+
+    if (!audioCtx) return;
+
+
+    try {
+
+        const osc =
+            audioCtx.createOscillator();
+
+        const gain =
+            audioCtx.createGain();
+
+
+        osc.connect(gain);
+        gain.connect(
+            audioCtx.destination
+        );
+
+
+        const now =
+            audioCtx.currentTime;
+
+
+        // ====================================================
+        // REMOTE CLICK
+        // ====================================================
+
+        if (type === 'click') {
+
+            osc.type = 'square';
+
+
+            osc.frequency.setValueAtTime(
+                400,
+                now
+            );
+
+
+            osc.frequency.exponentialRampToValueAtTime(
+                100,
+                now + 0.1
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.05,
+                now
+            );
+
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.01,
+                now + 0.1
+            );
+
+
+            osc.start(now);
+
+            osc.stop(
+                now + 0.1
+            );
+        }
+
+
+        // ====================================================
+        // LAMP FLICKER
+        // ====================================================
+
+        else if (type === 'flicker') {
+
+            osc.type = 'sawtooth';
+
+
+            osc.frequency.setValueAtTime(
+                60,
+                now
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.02,
+                now
+            );
+
+
+            gain.gain.linearRampToValueAtTime(
+                0,
+                now + 0.3
+            );
+
+
+            osc.start(now);
+
+            osc.stop(
+                now + 0.3
+            );
+        }
+
+
+        // ====================================================
+        // FOOTSTEP
+        // ====================================================
+
+        else if (type === 'step') {
+
+            osc.type = 'sine';
+
+
+            osc.frequency.setValueAtTime(
+                150,
+                now
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.01,
+                now
+            );
+
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                now + 0.05
+            );
+
+
+            osc.start(now);
+
+            osc.stop(
+                now + 0.05
+            );
+        }
+
+
+        // ====================================================
+        // SYSTEM ONLINE CHIME
+        // ====================================================
+
+        else if (type === 'online') {
+
+            osc.type = 'sine';
+
+
+            osc.frequency.setValueAtTime(
+                660,
+                now
+            );
+
+
+            osc.frequency.linearRampToValueAtTime(
+                880,
+                now + 0.18
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.001,
+                now
+            );
+
+
+            gain.gain.linearRampToValueAtTime(
+                0.035,
+                now + 0.04
+            );
+
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                now + 0.32
+            );
+
+
+            osc.start(now);
+
+            osc.stop(
+                now + 0.32
+            );
+        }
+
+
+        // ====================================================
+        // SYSTEM OFFLINE CHIME
+        // ====================================================
+
+        else if (type === 'offline') {
+
+            osc.type = 'sine';
+
+
+            osc.frequency.setValueAtTime(
+                520,
+                now
+            );
+
+
+            osc.frequency.linearRampToValueAtTime(
+                330,
+                now + 0.22
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.001,
+                now
+            );
+
+
+            gain.gain.linearRampToValueAtTime(
+                0.03,
+                now + 0.04
+            );
+
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                now + 0.35
+            );
+
+
+            osc.start(now);
+
+            osc.stop(
+                now + 0.35
+            );
+        }
+
+    } catch (error) {
+
+        console.warn(
+            'CMT Sound Error:',
+            error
+        );
     }
 }
