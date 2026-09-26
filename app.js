@@ -391,26 +391,70 @@ function resumeStory() {
     storyTimer = setTimeout(() => { showSlide(currentSlideIndex + 1); }, 2500);
 }
 
+// --- ADVANCED TOUCH-PAUSE STORY UI (UPDATED) ---
 function openStory(rIdx) {
     let row = globalClientData[rIdx];
     document.getElementById('storyClientName').innerText = row.client_name;
     
     currentStorySlides = [];
+    
+    // Slide 1: Initial Setup (Client Name, Create Date, Initial Stage)
     currentStorySlides.push({ 
-        text: `<h2 style="font-size:32px; margin-bottom:10px;">${row.client_name}</h2><p style="font-size:16px; margin-bottom:5px;">Init Stage: ${row.stage}</p><p style="color:#cbd5e1;"><i class="fa fa-calendar"></i> ${formatDateBD(row.created_date)}</p>`, 
-        color: 'linear-gradient(45deg, #1e293b, #0f172a)' 
+        text: `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 50%; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <i class="fa fa-user-circle fa-4x" style="color: #60a5fa;"></i>
+                </div>
+                <h2 style="font-size:32px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: 1px; color: #ffffff;">${row.client_name}</h2>
+                <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); padding: 5px 15px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <p style="font-size:14px; margin: 0; font-weight: 500; color: #93c5fd;"><i class="fa fa-flag" style="margin-right: 5px;"></i> First Stage: ${row.stage}</p>
+                </div>
+                <p style="color:#cbd5e1; font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa fa-calendar-alt"></i> Created On: ${formatDateBD(row.created_date)}
+                </p>
+            </div>
+        `, 
+        color: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' 
     });
     
+    // Slide 2: Recent Activity (Only if stage was updated)
     if(row.update_date && row.update_date !== row.created_date) {
         currentStorySlides.push({ 
-            text: `<h2 style="font-size:28px;">Recent Activity</h2><p style="margin:15px 0;"><i class="fa fa-sync fa-spin fa-2x"></i></p><p style="color:#bfdbfe;">Stage Updated On:<br>${formatDateBD(row.update_date)}</p>`, 
-            color: 'linear-gradient(45deg, #3b82f6, #1e40af)' 
+            text: `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 50%; margin-bottom: 20px; animation: pulseBadge 2s infinite;">
+                        <i class="fa fa-sync-alt fa-3x" style="color: #93c5fd;"></i>
+                    </div>
+                    <h2 style="font-size:28px; font-weight: 700; color: #ffffff; margin-bottom: 15px;">Stage Updated</h2>
+                    <div style="background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                        <p style="color:#e2e8f0; font-size: 15px; margin: 0 0 5px 0;">Recent Activity Logged On:</p>
+                        <p style="color:#93c5fd; font-size: 18px; font-weight: 600; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa fa-clock"></i> ${formatDateBD(row.update_date)}
+                        </p>
+                    </div>
+                </div>
+            `, 
+            color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' 
         });
     }
     
+    // Slide 3 (or 2 if no update): Current Milestone/Stage
     currentStorySlides.push({ 
-        text: `<h3 style="color:#a7f3d0; margin-bottom:15px;">Current Milestone</h3><h1 style="color:#10b981; font-size:42px; text-transform:uppercase;">${row.stage}</h1>`, 
-        color: 'linear-gradient(45deg, #064e3b, #047857)' 
+        text: `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div style="margin-bottom: 30px; position: relative;">
+                    <i class="fa fa-trophy fa-5x" style="color: #fcd34d; filter: drop-shadow(0 0 15px rgba(252, 211, 77, 0.4));"></i>
+                    <i class="fa fa-star" style="position: absolute; top: -10px; right: -15px; color: #fff; font-size: 20px; animation: pulseBadge 1.5s infinite;"></i>
+                </div>
+                <h3 style="color:#a7f3d0; margin: 0 0 10px 0; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Current Milestone</h3>
+                <div style="background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.4); padding: 10px 30px; border-radius: 30px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);">
+                    <h1 style="color:#10b981; font-size:38px; font-weight: 800; margin: 0; text-transform:uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        ${row.stage}
+                    </h1>
+                </div>
+            </div>
+        `, 
+        color: 'linear-gradient(135deg, #022c22 0%, #065f46 100%)' 
     });
     
     let barsHTML = '';
