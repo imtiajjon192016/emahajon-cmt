@@ -1461,12 +1461,59 @@ function renderTable() {
     let remarksText = r.remarks || ''; html += `<td oncontextmenu="showContextMenu(event, '${sheetRowIdx}')"><span style="font-size:12px; color:var(--text-muted);">${highlightSearch(remarksText, filterText)}</span></td>`;
     let toggleIcon = status === 'Active' ? 'fa-toggle-on' : 'fa-toggle-off'; let toggleColor = status === 'Active' ? '#10b981' : '#ef4444';
     
-    html += `<td style="min-width: 200px;">
+    html += `<td style="min-width: 220px;">
+    <i class="fa fa-eye action-icon view-icon" title="View Full Details" onclick="openClientViewModal(${actR})"></i>
     <i class="fa fa-thumbtack action-icon" style="color:#8b5cf6;" title="Pin Client (PiP)" onclick="pinClient(${actR})"></i>
     <i class="fa ${toggleIcon} status-icon" style="color:${toggleColor}; font-size:18px; margin-right:12px; cursor:pointer;" title="Toggle Status" onclick="toggleStatus('${sheetRowIdx}', '${status}', this)"></i><i class="fa fa-rocket action-icon rocket-icon" title="Launch" onclick="openLaunchpad(${actR})"></i><i class="fa fa-edit action-icon edit-icon" title="Edit" onclick="openModal('edit', ${actR}, '${sheetRowIdx}')"></i><i class="fa fa-trash action-icon delete-icon" title="Delete" onclick="deleteClient('${sheetRowIdx}')"></i></td></tr>`;
   }
   html += '</tbody></table>'; document.getElementById('clientTableContainer').innerHTML = html; document.getElementById('multiDeleteBtn').style.display = 'none'; document.getElementById('bulkActiveBtn').style.display = 'none'; document.getElementById('bulkInactiveBtn').style.display = 'none';
   let pHTML = `<span>Page ${currentClientPage} of ${totalPages} (Total ${totalRows})</span> <div style="display:flex; gap:10px;"><button class="page-btn" ${currentClientPage === 1 ? 'disabled' : ''} onclick="changePage(-1)"><i class="fa fa-chevron-left"></i> Prev</button><button class="page-btn" ${currentClientPage === totalPages ? 'disabled' : ''} onclick="changePage(1)">Next <i class="fa fa-chevron-right"></i></button></div>`; document.getElementById('clientPagination').innerHTML = pHTML;
+}
+
+// --- CLIENT PROFILE VIEW (ERP STYLE) ---
+function openClientViewModal(rIdx) {
+    let r = globalClientData[rIdx];
+    if (!r) return;
+    
+    // Set Profile Info
+    document.getElementById('cv-avatar').innerText = r.client_name ? r.client_name.charAt(0).toUpperCase() : 'C';
+    document.getElementById('cv-name').innerText = r.client_name || 'N/A';
+    document.getElementById('cv-stage').innerHTML = getStageBadge(r.stage);
+    
+    // Set Status Badge
+    let statusBadge = document.getElementById('cv-status');
+    if(r.status === 'Active') {
+        statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+        statusBadge.style.color = '#10b981';
+        statusBadge.innerText = 'Active Client';
+    } else {
+        statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+        statusBadge.style.color = '#ef4444';
+        statusBadge.innerText = 'Inactive Client';
+    }
+    
+    // Set Contact Info
+    document.getElementById('cv-mobile').innerText = r.mobile || 'N/A';
+    document.getElementById('cv-email').innerText = r.email || 'N/A';
+    document.getElementById('cv-address').innerText = r.address || 'N/A';
+    
+    // Set Credentials (URL with link)
+    let urlVal = String(r.login_url || '');
+    document.getElementById('cv-url').innerHTML = urlVal ? `<a href="${urlVal.startsWith('http') ? urlVal : 'https://'+urlVal}" target="_blank" style="color:#3b82f6; text-decoration:none; display:flex; align-items:center; gap:5px; width:100%;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${urlVal}</span> <i class="fa fa-external-link-alt" style="font-size:10px;"></i></a>` : 'N/A';
+    
+    // Password with Mask & Eye toggle
+    document.getElementById('cv-uid').innerText = String(r.user_id || '').replace(/^'/, '') || 'N/A';
+    let passVal = String(r.password || '').replace(/^'/, '');
+    document.getElementById('cv-pass').innerHTML = passVal ? `<span class="pwd-mask" data-pwd="${passVal}">••••••••</span> <i class="fa fa-eye toggle-table-pwd" style="cursor:pointer; color:#3b82f6; font-size:15px;" onclick="toggleTablePwd(this)"></i>` : 'N/A';
+    
+    // Set System Records
+    document.getElementById('cv-create-date').innerText = r.created_date ? formatDateBD(r.created_date) : 'N/A';
+    document.getElementById('cv-update-date').innerText = r.update_date ? formatDateBD(r.update_date) : (r.created_date ? formatDateBD(r.created_date) : 'N/A');
+    document.getElementById('cv-assigned').innerHTML = `<i class="fa fa-user-tie" style="margin-right:8px; color:#3b82f6; font-size:16px;"></i> <span style="font-weight:600;">${r.assigned_person || 'Unassigned'}</span>`;
+    document.getElementById('cv-remarks').innerText = r.remarks || 'No specific remarks/notes have been added for this client yet.';
+    
+    // Show Modal
+    document.getElementById('clientViewModal').style.display = 'flex';
 }
 
 function renderKanban() {

@@ -742,6 +742,64 @@
         </div>
     </div>
 
+<!-- Client Details View Modal -->
+<div class="modal-overlay" id="clientViewModal" style="padding: 0 !important; z-index: 9999999;">
+    <div class="modal" style="width: 90vw; max-width: 900px; border-radius: 16px;">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('clientViewModal').style.display='none'"></i>
+                <h3 style="color:var(--text-title);"><i class="fa fa-id-card" style="color:#3b82f6; margin-right:8px;"></i> Client Profile Details</h3>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 25px; background: var(--bg-main);">
+            <div style="display: flex; gap: 25px; flex-wrap: wrap; width: 100%;">
+                
+                <!-- Left Sidebar (Profile) -->
+                <div style="flex: 1; min-width: 280px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px 20px; text-align: center; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center;">
+                    <div id="cv-avatar" style="width: 90px; height: 90px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: 700; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);">A</div>
+                    <h2 id="cv-name" style="margin: 0 0 10px; color: var(--text-title); font-size: 22px; font-weight: 700;">Client Name</h2>
+                    <div id="cv-stage" style="margin-bottom: 15px;">Stage Badge</div>
+                    <div id="cv-status" style="display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">Status</div>
+                    
+                    <div style="width: 100%; height: 1px; background: var(--border-color); margin: 25px 0;"></div>
+                    
+                    <div style="text-align: left; font-size: 14px; color: var(--text-muted); display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #3b82f6;"><i class="fa fa-phone-alt"></i></div> <span id="cv-mobile" style="font-weight: 500; color: var(--text-main);">N/A</span></div>
+                        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #f59e0b;"><i class="fa fa-envelope"></i></div> <span id="cv-email" style="font-weight: 500; color: var(--text-main); word-break: break-all;">N/A</span></div>
+                        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #10b981;"><i class="fa fa-map-marker-alt"></i></div> <span id="cv-address" style="font-weight: 500; color: var(--text-main);">N/A</span></div>
+                    </div>
+                </div>
+                
+                <!-- Right Content (Details) -->
+                <div style="flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <!-- Credentials Section -->
+                    <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
+                        <div class="form-section-title" style="font-size: 14px; margin-bottom: 15px; color: #3b82f6;"><i class="fa fa-shield-alt"></i> Platform Access</div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-group full-width"><label>Portal URL</label><div class="read-only-box" id="cv-url"></div></div>
+                            <div class="form-group"><label>Login ID</label><div class="read-only-box" id="cv-uid"></div></div>
+                            <div class="form-group"><label>Password</label><div class="read-only-box" id="cv-pass" style="justify-content: space-between;"></div></div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Details Section -->
+                    <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
+                        <div class="form-section-title" style="font-size: 14px; margin-bottom: 15px; color: #8b5cf6;"><i class="fa fa-server"></i> System Records</div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-group"><label>Created Date</label><div class="read-only-box"><i class="fa fa-calendar-plus" style="color:var(--text-muted); margin-right:8px;"></i> <span id="cv-create-date"></span></div></div>
+                            <div class="form-group"><label>Last Updated</label><div class="read-only-box"><i class="fa fa-clock" style="color:var(--text-muted); margin-right:8px;"></i> <span id="cv-update-date"></span></div></div>
+                            <div class="form-group full-width"><label>Assigned Person</label><div class="read-only-box" id="cv-assigned" style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2);"></div></div>
+                            <div class="form-group full-width"><label>Remarks & Notes</label><div class="read-only-box" id="cv-remarks" style="min-height: 80px; align-items: flex-start; white-space: pre-wrap;"></div></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Reference to separated JS logic -->
     <script src="app.js"></script>
 
