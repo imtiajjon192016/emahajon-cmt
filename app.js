@@ -2493,6 +2493,11 @@ async function saveSystemUser() {
         showToast(resErr.message, "error"); 
     } else { 
         showToast("User Updated", "success"); 
+        
+        // --- ADDED NOTIFICATION TRIGGER ---
+        let actionMsg = uModalMode === 'edit' ? 'updated' : 'created';
+        addNotification(`User ${uModalMode === 'edit' ? 'Updated' : 'Created'}`, `${userName} has been successfully ${actionMsg}.`, 'fa-user-check', '#10b981');
+        
         fetchUsersForDropdown();
         fetchUsers(); 
     }
@@ -3706,23 +3711,18 @@ function askNotificationPermission() {
 }
 
 function sendNativeNotification(title, body) {
-    // Check if permission is granted
     if ("Notification" in window && Notification.permission === "granted") {
-        // Checking if the document is hidden/minimized. 
-        // We only want native notifications if the user is not actively looking at the tab
-        if (document.visibilityState === 'hidden') {
-            const options = {
-                body: body,
-                icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
-                vibrate: [200, 100, 200]
-            };
-            let nativeNotif = new Notification(title, options);
-            
-            // Clicking the notification brings the tab to focus
-            nativeNotif.onclick = function() {
-                window.focus();
-                this.close();
-            };
-        }
+        // Removed visibility check for testing, it will always fire now
+        const options = {
+            body: body,
+            icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
+            vibrate: [200, 100, 200]
+        };
+        let nativeNotif = new Notification(title, options);
+        
+        nativeNotif.onclick = function() {
+            window.focus();
+            this.close();
+        };
     }
 }
