@@ -156,20 +156,51 @@ function renderLiveUsers(state) {
                 <b style="color:var(--text-title); display:block; font-size:15px;">${userObj.name}</b>
                 <span style="font-size:12px; color:var(--text-muted); background:var(--bg-input); padding:2px 8px; border-radius:10px;">${userObj.role}</span>
             </div>
-            <i class="fa fa-phone-alt" style="font-size:20px; color:#3b82f6; cursor:pointer; margin-right:15px; transition:0.3s;" onclick="window.open('tel:${userObj.user_id}', '_self')" title="Direct Phone Call"></i>
-            <i class="fab fa-whatsapp" style="font-size:26px; color:#25D366; cursor:pointer; transition:0.3s;" onclick="whatsappCall('${userObj.user_id}')" title="Direct WhatsApp Call"></i>
+            <div style="display:flex; gap: 15px; align-items:center;">
+                <i class="fa fa-phone-alt action-icon" style="font-size:20px; color:#3b82f6; cursor:pointer; transition:0.3s; margin: 0;" onclick="initiateContact('${userObj.user_id}', 'call', '${userObj.name}')" title="Direct Phone Call"></i>
+                <i class="fab fa-whatsapp action-icon" style="font-size:24px; color:#25D366; cursor:pointer; transition:0.3s; margin: 0;" onclick="initiateContact('${userObj.user_id}', 'whatsapp', '${userObj.name}')" title="Direct WhatsApp Chat"></i>
+            </div>
         </div>`;
     }
-    container.innerHTML = html || "<div style='color:var(--text-muted); font-size:14px; padding:20px;'>No active users currently.</div>";
+    container.innerHTML = html || "<div style='color:var(--text-muted); font-size:14px; padding:20px; text-align:center;'>No active users currently.</div>";
 }
 
-function whatsappCall(phone) {
-    let num = String(phone).replace(/[^0-9]/g, '');
-    if(num.length >= 10) {
-        if(num.startsWith('0')) { num = '88' + num; }
-        window.open(`https://wa.me/${num}`, '_blank');
-    } else {
-        showToast("Phone number not found", "error");
+// --- DYNAMIC LIVE USER CONTACT FUNCTION ---
+async function initiateContact(loginId, type, userName) {
+    showLoader(`Fetching details for ${userName}...`);
+    
+    try {
+        // Query database for the exact mobile number using the user's login ID
+        const { data, error } = await _supabase.from('users').select('mobilenumber').eq('loginid', loginId).single();
+        hideLoader();
+
+        let phone = data ? data.mobilenumber : null;
+
+        // Check if phone is empty, null, or a generic placeholder like "Optional"
+        if (error || !phone || phone.trim() === '' || phone.trim().toLowerCase() === 'optional') {
+            return Swal.fire({
+                icon: 'info',
+                title: 'Mobile Number Not Available',
+                text: `${userName} has not updated their mobile number in the system.`,
+                confirmButtonColor: '#3b82f6'
+            });
+        }
+
+        // Format number logically
+        let num = String(phone).replace(/[^0-9+]/g, '');
+        if(num.startsWith('0')) { num = '88' + num; } // Append Bangladesh country code if starts with 0
+        
+        let waNum = num.replace('+', ''); // WhatsApp usually prefers numbers without '+'
+
+        if (type === 'call') {
+            window.open(`tel:+${waNum}`, '_self');
+        } else if (type === 'whatsapp') {
+            window.open(`https://wa.me/${waNum}`, '_blank');
+        }
+
+    } catch(e) {
+        hideLoader();
+        showToast("Error connecting to user database.", "error");
     }
 }
 
