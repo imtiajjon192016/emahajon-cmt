@@ -2329,23 +2329,18 @@ function toggleLamp() {
 }
 
 // ============================================================
-// CMT SMART AI HELPER
-// Professional Voice + Mascot Animation + Lamp Control
+// CMT PROFESSIONAL AI HELPER SYSTEM
+// Touch → AI Response → Mascot → Remote → Lamp → Status
 // ============================================================
 
 function askHelper() {
 
-    // --------------------------------------------------------
-    // AUDIO INITIALIZATION
-    // --------------------------------------------------------
-
     initAudio();
 
-    // Prevent double trigger
+    // Prevent double click / multiple activation
     if (helperBusy) return;
 
     helperBusy = true;
-
 
     // --------------------------------------------------------
     // DOM ELEMENTS
@@ -2356,29 +2351,19 @@ function askHelper() {
     const speech = document.getElementById('helperSpeech');
     const loginScreen = document.getElementById('loginScreen');
 
-
-    // Safety check
     if (!helper || !cssMan || !speech || !loginScreen) {
-
-        console.warn(
-            'CMT Helper: Required HTML element not found.'
-        );
-
+        console.warn('CMT: Required element not found.');
         helperBusy = false;
         return;
     }
 
-
-    // --------------------------------------------------------
-    // CURRENT LAMP STATE
-    // --------------------------------------------------------
-
+    // Current lamp/system state BEFORE toggle
     const isCurrentlyOn =
         loginScreen.classList.contains('lamp-on');
 
 
     // --------------------------------------------------------
-    // RESET OLD STATES
+    // RESET PREVIOUS STATES
     // --------------------------------------------------------
 
     cssMan.classList.remove(
@@ -2389,32 +2374,51 @@ function askHelper() {
 
     helper.classList.remove(
         'walking',
-        'pointing'
+        'pointing',
+        'cmt-touch-active'
+    );
+
+    loginScreen.classList.remove(
+        'cmt-energy-pulse',
+        'cmt-system-online',
+        'cmt-system-standby'
     );
 
 
-    // Reset movement guard
-    helper.dataset.movementStarted = 'false';
+    // --------------------------------------------------------
+    // SYSTEM STATUS
+    // --------------------------------------------------------
+
+    setCMTStatus(
+        isCurrentlyOn
+            ? 'SYSTEM ACTIVE'
+            : 'SYSTEM STANDBY',
+        isCurrentlyOn
+            ? 'active'
+            : 'standby'
+    );
 
 
     // --------------------------------------------------------
-    // STOP OLD SPEECH
+    // TOUCH RESPONSE
     // --------------------------------------------------------
 
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-    }
+    helper.classList.add('cmt-touch-active');
+
+    setTimeout(() => {
+        helper.classList.remove('cmt-touch-active');
+    }, 900);
 
 
-    // ========================================================
-    // INITIAL SPEECH BUBBLE
-    // ========================================================
+    // --------------------------------------------------------
+    // SPEECH BUBBLE
+    // --------------------------------------------------------
+
+    speech.style.opacity = '1';
 
     speech.innerText = isCurrentlyOn
         ? 'CMT going offline...'
         : 'আসসালামু আলাইকুম, স্যার...';
-
-    speech.style.opacity = '1';
 
     cssMan.classList.add('salam-pose');
 
@@ -2422,6 +2426,13 @@ function askHelper() {
     // ========================================================
     // VOICE ENGINE
     // ========================================================
+
+    function wait(ms) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        });
+    }
+
 
     function getVoices() {
 
@@ -2433,10 +2444,6 @@ function askHelper() {
     }
 
 
-    // --------------------------------------------------------
-    // Find a suitable voice
-    // --------------------------------------------------------
-
     function findVoice(language) {
 
         const voices = getVoices();
@@ -2445,15 +2452,11 @@ function askHelper() {
             return null;
         }
 
-        const targetLanguage =
-            language.toLowerCase();
+        const target = language.toLowerCase();
+        const prefix = target.split('-')[0];
 
-        const languagePrefix =
-            targetLanguage.split('-')[0];
-
-
-        // Names commonly associated with female/smooth voices
-        const femaleNames = [
+        // Female / soft voice names commonly available
+        const femaleKeywords = [
             'female',
             'zira',
             'samantha',
@@ -2470,103 +2473,88 @@ function askHelper() {
         ];
 
 
-        // 1. Exact language + female voice
+        // Exact language + female voice
         let voice = voices.find(v => {
 
-            const voiceLanguage =
+            const voiceLang =
                 (v.lang || '').toLowerCase();
 
             const voiceName =
                 (v.name || '').toLowerCase();
 
-            const languageMatch =
-                voiceLanguage === targetLanguage;
-
-            const femaleMatch =
-                femaleNames.some(name =>
-                    voiceName.includes(name)
-                );
-
-            return languageMatch && femaleMatch;
+            return (
+                voiceLang === target &&
+                femaleKeywords.some(keyword =>
+                    voiceName.includes(keyword)
+                )
+            );
         });
-
 
         if (voice) return voice;
 
 
-        // 2. Same language + female voice
+        // Same language + female voice
         voice = voices.find(v => {
 
-            const voiceLanguage =
+            const voiceLang =
                 (v.lang || '').toLowerCase();
 
             const voiceName =
                 (v.name || '').toLowerCase();
 
-            const languageMatch =
-                voiceLanguage.startsWith(languagePrefix);
-
-            const femaleMatch =
-                femaleNames.some(name =>
-                    voiceName.includes(name)
-                );
-
-            return languageMatch && femaleMatch;
+            return (
+                voiceLang.startsWith(prefix) &&
+                femaleKeywords.some(keyword =>
+                    voiceName.includes(keyword)
+                )
+            );
         });
-
 
         if (voice) return voice;
 
 
-        // 3. Bengali fallback
-        if (languagePrefix === 'bn') {
+        // Bengali fallback
+        if (prefix === 'bn') {
 
             voice = voices.find(v => {
 
-                const voiceLanguage =
+                const voiceLang =
                     (v.lang || '').toLowerCase();
 
-                return voiceLanguage.startsWith('bn');
+                return voiceLang.startsWith('bn');
             });
 
             if (voice) return voice;
         }
 
 
-        // 4. Exact language
+        // Exact language fallback
         voice = voices.find(v => {
 
-            const voiceLanguage =
+            const voiceLang =
                 (v.lang || '').toLowerCase();
 
-            return voiceLanguage === targetLanguage;
+            return voiceLang === target;
         });
-
 
         if (voice) return voice;
 
 
-        // 5. Language prefix
+        // Language prefix fallback
         voice = voices.find(v => {
 
-            const voiceLanguage =
+            const voiceLang =
                 (v.lang || '').toLowerCase();
 
-            return voiceLanguage.startsWith(languagePrefix);
+            return voiceLang.startsWith(prefix);
         });
-
 
         if (voice) return voice;
 
 
-        // 6. Final fallback
         return voices[0] || null;
     }
 
-
-    // --------------------------------------------------------
-    // Speak function
-    // --------------------------------------------------------
 
     function speak(text, language, options = {}) {
 
@@ -2578,75 +2566,56 @@ function askHelper() {
             }
 
 
-            const utterance =
+            const msg =
                 new SpeechSynthesisUtterance(text);
 
 
-            utterance.lang =
+            msg.lang =
                 language || 'bn-BD';
 
-
-            utterance.rate =
+            msg.rate =
                 options.rate ?? 0.84;
 
+            msg.pitch =
+                options.pitch ?? 1.04;
 
-            utterance.pitch =
-                options.pitch ?? 1.03;
-
-
-            utterance.volume =
+            msg.volume =
                 options.volume ?? 1;
 
 
-            const selectedVoice =
+            const voice =
                 findVoice(language);
 
 
-            if (selectedVoice) {
-                utterance.voice =
-                    selectedVoice;
+            if (voice) {
+                msg.voice = voice;
             }
 
 
-            let finished = false;
+            let completed = false;
 
 
             const finish = () => {
 
-                if (finished) return;
+                if (completed) return;
 
-                finished = true;
+                completed = true;
 
                 resolve();
             };
 
 
-            utterance.onend = finish;
-
-            utterance.onerror = finish;
-
-
-            window.speechSynthesis.speak(
-                utterance
-            );
-        });
-    }
+            msg.onend = finish;
+            msg.onerror = finish;
 
 
-    // --------------------------------------------------------
-    // Small delay helper
-    // --------------------------------------------------------
-
-    function wait(ms) {
-
-        return new Promise(resolve => {
-            setTimeout(resolve, ms);
+            window.speechSynthesis.speak(msg);
         });
     }
 
 
     // ========================================================
-    // PLAY PROFESSIONAL GREETING
+    // PROFESSIONAL VOICE SEQUENCE
     // ========================================================
 
     async function playGreeting() {
@@ -2656,104 +2625,105 @@ function askHelper() {
         }
 
 
-        // Make sure previous speech is gone
         window.speechSynthesis.cancel();
 
         await wait(120);
 
 
         // ====================================================
-        // SYSTEM ON
+        // 🟢 SYSTEM ON
         // ====================================================
 
         if (!isCurrentlyOn) {
 
             // -----------------------------------------------
-            // 1. SALAM
+            // SALAM
             // -----------------------------------------------
 
             speech.innerText =
                 'আসসালামু আলাইকুম, স্যার...';
-
 
             await speak(
                 'আসসালামু আলাইকুম, স্যার।',
                 'bn-BD',
                 {
                     rate: 0.80,
-                    pitch: 1.04,
-                    volume: 1
+                    pitch: 1.05
                 }
             );
 
 
-            // Natural pause
             await wait(350);
 
 
             // -----------------------------------------------
-            // 2. SYSTEM ONLINE
+            // CMT ONLINE
             // -----------------------------------------------
 
             speech.innerText =
                 'CMT is online.';
 
+            setCMTStatus(
+                'INITIALIZING...',
+                'processing'
+            );
 
             await speak(
                 'CMT is online.',
                 'en-US',
                 {
                     rate: 0.84,
-                    pitch: 1.02,
-                    volume: 1
+                    pitch: 1.03
                 }
             );
 
 
-            await wait(250);
+            await wait(280);
 
 
             // -----------------------------------------------
-            // 3. FINAL BANGLA CONFIRMATION
+            // READY
             // -----------------------------------------------
 
             speech.innerText =
                 'আপনার জন্য সিস্টেম প্রস্তুত।';
 
+            setCMTStatus(
+                'SYSTEM READY',
+                'active'
+            );
 
             await speak(
                 'আপনার জন্য সিস্টেম প্রস্তুত।',
                 'bn-BD',
                 {
                     rate: 0.82,
-                    pitch: 1.04,
-                    volume: 1
+                    pitch: 1.05
                 }
             );
         }
 
 
         // ====================================================
-        // SYSTEM OFF
+        // 🔴 SYSTEM OFF
         // ====================================================
 
         else {
 
-            // -----------------------------------------------
-            // 1. OFFLINE
-            // -----------------------------------------------
-
             speech.innerText =
                 'CMT going offline...';
 
+            setCMTStatus(
+                'SHUTTING DOWN...',
+                'processing'
+            );
 
             await speak(
                 'CMT going offline.',
                 'en-US',
                 {
                     rate: 0.82,
-                    pitch: 1.02,
-                    volume: 1
+                    pitch: 1.03
                 }
             );
 
@@ -2761,21 +2731,15 @@ function askHelper() {
             await wait(300);
 
 
-            // -----------------------------------------------
-            // 2. FAREWELL
-            // -----------------------------------------------
-
             speech.innerText =
                 'আবার দেখা হবে, স্যার।';
-
 
             await speak(
                 'আবার দেখা হবে, স্যার।',
                 'bn-BD',
                 {
                     rate: 0.82,
-                    pitch: 1.04,
-                    volume: 1
+                    pitch: 1.05
                 }
             );
         }
@@ -2783,14 +2747,14 @@ function askHelper() {
 
 
     // ========================================================
-    // START GREETING
+    // START VOICE
     // ========================================================
 
-    async function startGreeting() {
+    async function startVoice() {
 
         try {
 
-            // Wait for browser voices if necessary
+            // Wait for browser voice list
             if (
                 'speechSynthesis' in window &&
                 getVoices().length === 0
@@ -2798,14 +2762,13 @@ function askHelper() {
 
                 await new Promise(resolve => {
 
-                    let resolved = false;
-
+                    let done = false;
 
                     const finish = () => {
 
-                        if (resolved) return;
+                        if (done) return;
 
-                        resolved = true;
+                        done = true;
 
                         window.speechSynthesis
                             .removeEventListener(
@@ -2824,7 +2787,7 @@ function askHelper() {
                         );
 
 
-                    // Fallback
+                    // Safety fallback
                     setTimeout(
                         finish,
                         1000
@@ -2835,7 +2798,6 @@ function askHelper() {
 
             await playGreeting();
 
-
         } catch (error) {
 
             console.warn(
@@ -2845,7 +2807,7 @@ function askHelper() {
 
         } finally {
 
-            // Speech finished
+            // Voice MUST finish before walking
             startHelperMovement();
         }
     }
@@ -2855,7 +2817,7 @@ function askHelper() {
     // START VOICE
     // ========================================================
 
-    startGreeting();
+    startVoice();
 
 
     // ========================================================
@@ -2864,7 +2826,6 @@ function askHelper() {
 
     function startHelperMovement() {
 
-        // Prevent duplicate movement
         if (
             helper.dataset.movementStarted === 'true'
         ) {
@@ -2876,10 +2837,7 @@ function askHelper() {
             'true';
 
 
-        // ----------------------------------------------------
         // Hide speech bubble
-        // ----------------------------------------------------
-
         speech.style.opacity = '0';
 
         cssMan.classList.remove(
@@ -2887,10 +2845,7 @@ function askHelper() {
         );
 
 
-        // ----------------------------------------------------
         // Turn toward remote
-        // ----------------------------------------------------
-
         cssMan.style.transform =
             'scaleX(-1) scale(1.3)';
 
@@ -2907,17 +2862,17 @@ function askHelper() {
             );
 
 
-        // ----------------------------------------------------
-        // Move to remote
-        // ----------------------------------------------------
-
+        // Walk to remote
         helper.style.left = '28%';
 
+
+        // ----------------------------------------------------
+        // REACH REMOTE
+        // ----------------------------------------------------
 
         setTimeout(() => {
 
             clearInterval(stepInterval);
-
 
             helper.classList.remove(
                 'walking'
@@ -2928,16 +2883,12 @@ function askHelper() {
                 'looking-up'
             );
 
-
             helper.classList.add(
                 'pointing'
             );
 
 
-            // ------------------------------------------------
-            // Prepare to press remote
-            // ------------------------------------------------
-
+            // Small thinking pause
             setTimeout(() => {
 
                 const led =
@@ -2946,56 +2897,91 @@ function askHelper() {
                     );
 
 
+                // Remote LED
                 if (led) {
+
                     led.classList.add(
                         'flash'
                     );
                 }
 
 
+                // Remote click
                 playSound('click');
 
 
                 // ------------------------------------------------
-                // Toggle lamp
+                // LAMP ACTION
                 // ------------------------------------------------
 
                 setTimeout(() => {
 
                     if (led) {
+
                         led.classList.remove(
                             'flash'
                         );
                     }
 
 
-                    // Main existing function
+                    // Main existing lamp function
                     toggleLamp();
 
 
-                    // Premium confirmation sound
+                    // ------------------------------------------------
+                    // PREMIUM LIGHT ENERGY EFFECT
+                    // ------------------------------------------------
+
+                    loginScreen.classList.add(
+                        'cmt-energy-pulse'
+                    );
+
+
                     setTimeout(() => {
 
-                        if (isCurrentlyOn) {
+                        loginScreen.classList.remove(
+                            'cmt-energy-pulse'
+                        );
 
-                            // Lamp was ON → now OFF
-                            playSound(
-                                'offline'
-                            );
-
-                        } else {
-
-                            // Lamp was OFF → now ON
-                            playSound(
-                                'online'
-                            );
-                        }
-
-                    }, 100);
+                    }, 850);
 
 
                     // ------------------------------------------------
-                    // Return
+                    // SYSTEM STATUS AFTER TOGGLE
+                    // ------------------------------------------------
+
+                    if (!isCurrentlyOn) {
+
+                        // OFF → ON
+                        setCMTStatus(
+                            '● SYSTEM ONLINE',
+                            'active'
+                        );
+
+                        loginScreen.classList.add(
+                            'cmt-system-online'
+                        );
+
+                        playSound('online');
+
+                    } else {
+
+                        // ON → OFF
+                        setCMTStatus(
+                            '● SYSTEM STANDBY',
+                            'standby'
+                        );
+
+                        loginScreen.classList.add(
+                            'cmt-system-standby'
+                        );
+
+                        playSound('offline');
+                    }
+
+
+                    // ------------------------------------------------
+                    // RETURN
                     // ------------------------------------------------
 
                     setTimeout(() => {
@@ -3003,7 +2989,6 @@ function askHelper() {
                         helper.classList.remove(
                             'pointing'
                         );
-
 
                         cssMan.classList.remove(
                             'looking-up'
@@ -3031,7 +3016,7 @@ function askHelper() {
 
 
                         // ------------------------------------------------
-                        // Finish
+                        // COMPLETE
                         // ------------------------------------------------
 
                         setTimeout(() => {
@@ -3051,23 +3036,70 @@ function askHelper() {
                                 'false';
 
 
-                            helperBusy =
-                                false;
+                            helperBusy = false;
 
 
                         }, 1500);
 
 
-                    }, 550);
+                    }, 600);
 
 
                 }, 180);
 
 
-            }, 500);
+            }, 550);
 
 
         }, 1500);
+    }
+
+
+    // ========================================================
+    // SYSTEM STATUS HELPER
+    // ========================================================
+
+    function setCMTStatus(text, state) {
+
+        let status =
+            document.getElementById(
+                'cmtSystemStatus'
+            );
+
+
+        // Create automatically if missing
+        if (!status) {
+
+            status =
+                document.createElement('div');
+
+            status.id =
+                'cmtSystemStatus';
+
+            status.className =
+                'cmt-system-status';
+
+
+            // Put status near login screen
+            loginScreen.appendChild(
+                status
+            );
+        }
+
+
+        status.innerText = text;
+
+
+        status.classList.remove(
+            'active',
+            'standby',
+            'processing'
+        );
+
+
+        status.classList.add(
+            state
+        );
     }
 }
 
@@ -3143,7 +3175,7 @@ function playSound(type) {
 
 
         // ====================================================
-        // LAMP FLICKER
+        // FLICKER
         // ====================================================
 
         else if (type === 'flicker') {
@@ -3213,7 +3245,7 @@ function playSound(type) {
 
 
         // ====================================================
-        // SYSTEM ONLINE CHIME
+        // SYSTEM ONLINE
         // ====================================================
 
         else if (type === 'online') {
@@ -3222,10 +3254,9 @@ function playSound(type) {
 
 
             osc.frequency.setValueAtTime(
-                660,
+                620,
                 now
             );
-
 
             osc.frequency.linearRampToValueAtTime(
                 880,
@@ -3238,29 +3269,27 @@ function playSound(type) {
                 now
             );
 
-
             gain.gain.linearRampToValueAtTime(
                 0.035,
                 now + 0.04
             );
 
-
             gain.gain.exponentialRampToValueAtTime(
                 0.001,
-                now + 0.32
+                now + 0.35
             );
 
 
             osc.start(now);
 
             osc.stop(
-                now + 0.32
+                now + 0.35
             );
         }
 
 
         // ====================================================
-        // SYSTEM OFFLINE CHIME
+        // SYSTEM OFFLINE
         // ====================================================
 
         else if (type === 'offline') {
@@ -3273,9 +3302,8 @@ function playSound(type) {
                 now
             );
 
-
             osc.frequency.linearRampToValueAtTime(
-                330,
+                320,
                 now + 0.22
             );
 
@@ -3285,23 +3313,21 @@ function playSound(type) {
                 now
             );
 
-
             gain.gain.linearRampToValueAtTime(
                 0.03,
                 now + 0.04
             );
 
-
             gain.gain.exponentialRampToValueAtTime(
                 0.001,
-                now + 0.35
+                now + 0.38
             );
 
 
             osc.start(now);
 
             osc.stop(
-                now + 0.35
+                now + 0.38
             );
         }
 
