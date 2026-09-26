@@ -876,26 +876,50 @@
     </div>
 </div>
 
-<!-- Email Template View Modal -->
+<!-- Email Template View Modal (Professional & Full Width) -->
 <div class="modal-overlay" id="emailViewModal" style="padding: 0 !important; z-index: 9999999;">
-    <div class="modal" style="width: 90vw; max-width: 650px; border-radius: 16px;">
+    <div class="modal" style="width: 90vw; max-width: 800px; border-radius: 16px;">
+        
         <div class="modal-header">
             <div class="modal-header-left">
                 <i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('emailViewModal').style.display='none'"></i>
-                <h3 style="color:var(--text-title);"><i class="fa fa-envelope-open-text" style="color:#3b82f6; margin-right:8px;"></i> View Template</h3>
+                <h3 style="color:var(--text-title);"><i class="fa fa-envelope-open-text" style="color:#3b82f6; margin-right:8px;"></i> Template Preview</h3>
             </div>
             <button class="btn-primary" id="ev-send-btn" onclick=""><i class="fa fa-paper-plane"></i> Send Email</button>
         </div>
-        <div class="modal-body" style="padding: 25px; background: var(--bg-main);">
-            <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
-                <div class="form-group" style="margin-bottom:15px;"><label>Template Name</label><div class="read-only-box" id="ev-name" style="font-weight: 700; color: #3b82f6;"></div></div>
-                <div class="form-group" style="margin-bottom:15px;"><label>Email Subject</label><div class="read-only-box" id="ev-subject"></div></div>
-                <div class="form-group"><label>Email Body</label><div class="read-only-box" id="ev-body" style="min-height: 150px; align-items: flex-start; white-space: pre-wrap; background: var(--bg-card);"></div></div>
+        
+        <div class="modal-body" style="padding: 25px 30px; background: var(--bg-main);">
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Meta Info Section (Name & Subject) -->
+                <div style="background: var(--bg-card); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); width: 100%;">
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: flex-start; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px;">
+                            <div style="width: 140px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Template Name</div>
+                            <div id="ev-name" style="flex: 1; font-size: 16px; font-weight: 700; color: #3b82f6;"></div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="width: 140px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Email Subject</div>
+                            <div id="ev-subject" style="flex: 1; font-size: 16px; font-weight: 600; color: var(--text-title);"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Email Body Preview Section -->
+                <div style="background: var(--bg-card); padding: 0; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); width: 100%; overflow: hidden;">
+                    <div style="background: var(--table-header); padding: 15px 25px; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 600; color: var(--text-title); display: flex; align-items: center; gap: 10px;">
+                        <i class="fa fa-align-left" style="color: #8b5cf6; font-size: 16px;"></i> Email Content Body
+                    </div>
+                    <div id="ev-body" style="padding: 25px; min-height: 250px; font-size: 14px; line-height: 1.7; color: var(--text-main); white-space: pre-wrap; font-family: 'Poppins', sans-serif;">
+                        <!-- Body content will be injected here -->
+                    </div>
+                </div>
+                
             </div>
         </div>
+        
     </div>
 </div>
-
     <!-- Reference to separated JS logic -->
     <script src="app.js"></script>
 
