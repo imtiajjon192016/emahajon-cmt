@@ -214,38 +214,56 @@
 
             <div class="content-wrapper">
 
+               
                 <!-- Admin Dashboard -->
                 <div class="tab-panel" id="tab-admin-dashboard">
                     <h3 style="margin-top:0; color:var(--text-title); font-weight: 700; margin-bottom:20px;">Master Dashboard</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                        
                         <div class="glass-card wave-blue">
                             <div class="magic-border"></div>
-                            <div class="card-content">
-                                <h4>Total Clients</h4>
-                                <h2 id="dashTotalClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            <div class="card-content" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4>Total Clients</h4>
+                                    <h2 id="dashTotalClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                                </div>
+                                <i class="fa fa-users" style="font-size: 45px; opacity: 0.15; position:relative; z-index:2; color: var(--text-title);"></i>
                             </div>
                         </div>
+                        
                         <div class="glass-card wave-green">
                             <div class="magic-border"></div>
-                            <div class="card-content">
-                                <h4>Active Clients</h4>
-                                <h2 id="dashActiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            <div class="card-content" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4>Active Clients</h4>
+                                    <h2 id="dashActiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                                </div>
+                                <i class="fa fa-user-check" style="font-size: 45px; opacity: 0.15; position:relative; z-index:2; color: var(--text-title);"></i>
                             </div>
                         </div>
+                        
                         <div class="glass-card wave-red">
                             <div class="magic-border"></div>
-                            <div class="card-content">
-                                <h4>Inactive Clients</h4>
-                                <h2 id="dashInactiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            <div class="card-content" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4>Inactive Clients</h4>
+                                    <h2 id="dashInactiveClients" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                                </div>
+                                <i class="fa fa-user-times" style="font-size: 45px; opacity: 0.15; position:relative; z-index:2; color: var(--text-title);"></i>
                             </div>
                         </div>
+                        
                         <div class="glass-card wave-yellow">
                             <div class="magic-border"></div>
-                            <div class="card-content">
-                                <h4>System Users</h4>
-                                <h2 id="dashTotalUsers" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                            <div class="card-content" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4>System Users</h4>
+                                    <h2 id="dashTotalUsers" style="margin:0; font-size:36px; position:relative; z-index:2;">0</h2>
+                                </div>
+                                <i class="fa fa-user-shield" style="font-size: 45px; opacity: 0.15; position:relative; z-index:2; color: var(--text-title);"></i>
                             </div>
                         </div>
+
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
                         <div class="dash-card" style="padding: 0;">

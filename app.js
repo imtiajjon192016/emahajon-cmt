@@ -1256,13 +1256,59 @@ function renderAdminDashboard() {
     let textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#333'; 
     let chartLabels = Object.keys(stageCounts).map(s => `${s} (${stageCounts[s]})`); 
     
+    // Doughnut Chart (Client Stages) - Updated with Cutout for sleek look
     if (stageChartInstance) stageChartInstance.destroy(); 
     let stageCtx = document.getElementById('stageChart').getContext('2d'); 
-    stageChartInstance = new Chart(stageCtx, { type: 'doughnut', data: { labels: chartLabels, datasets: [{ data: Object.values(stageCounts), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'], borderWidth:2, borderColor:'var(--bg-card)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor, font:{family:'Poppins', size:12} } } } } }); 
+    stageChartInstance = new Chart(stageCtx, { 
+        type: 'doughnut', 
+        data: { 
+            labels: chartLabels, 
+            datasets: [{ 
+                data: Object.values(stageCounts), 
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'], 
+                borderWidth: 3, 
+                borderColor: 'var(--bg-card)',
+                hoverOffset: 5
+            }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            cutout: '70%',
+            plugins: { 
+                legend: { 
+                    position: 'right', 
+                    labels: { color: textColor, font: { family: 'Poppins', size: 12 }, padding: 15 } 
+                } 
+            } 
+        } 
+    }); 
     
+    // Bar Chart (Team Workload) - Fixed large bar width issue
     if (workloadChartInstance) workloadChartInstance.destroy(); 
     let workCtx = document.getElementById('workloadChart').getContext('2d'); 
-    workloadChartInstance = new Chart(workCtx, { type: 'bar', data: { labels: Object.keys(assignCounts), datasets: [{ label: 'Clients Assigned', data: Object.values(assignCounts), backgroundColor: '#3b82f6', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid:{color:'rgba(148, 163, 184, 0.1)'}, ticks:{color:textColor, font:{family:'Poppins'}} }, x: { grid:{display:false}, ticks:{color:textColor, font:{family:'Poppins'}} } }, plugins: { legend: { display: false } } } }); 
+    workloadChartInstance = new Chart(workCtx, { 
+        type: 'bar', 
+        data: { 
+            labels: Object.keys(assignCounts), 
+            datasets: [{ 
+                label: 'Clients Assigned', 
+                data: Object.values(assignCounts), 
+                backgroundColor: '#3b82f6', 
+                borderRadius: 8,
+                maxBarThickness: 50 // Ensures bars don't take full width if there's only 1 user
+            }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { 
+                y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { color: textColor, font: { family: 'Poppins' }, precision: 0 } }, 
+                x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Poppins' } } } 
+            }, 
+            plugins: { legend: { display: false } } 
+        } 
+    }); 
 }
 
 function populateReportDropdowns() { 
