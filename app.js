@@ -654,6 +654,17 @@ function bufferToBase64url(buffer) {
     return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
+function base64urlToBuffer(base64url) {
+    let padding = '='.repeat((4 - base64url.length % 4) % 4);
+    let base64 = (base64url + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    let rawData = window.atob(base64);
+    let outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 async function registerBiometric() {
     if (!window.PublicKeyCredential) return alert("Sorry! Fingerprint is not supported on your device/browser.");
     try {
@@ -688,14 +699,33 @@ async function loginWithBiometric() {
     if (!window.PublicKeyCredential) return Swal.fire({icon: 'error', title: 'Oops!', text: 'Fingerprint not supported on this browser.'});
 
     let vault = JSON.parse(localStorage.getItem('cmt_passkeys') || '{}');
+    let registeredKeys = Object.keys(vault);
 
-    if (Object.keys(vault).length === 0) {
+    if (registeredKeys.length === 0) {
         return Swal.fire({ icon: 'warning', title: 'No Fingerprint Registered!', text: "Please login manually first, go to 'My Profile', and click 'Enable Fingerprint Login'." });
     }
 
     try {
+        // Prepare allowed credentials array to skip the account picker popup
+        let allowedCredentials = registeredKeys.map(key => {
+            return {
+                type: "public-key",
+                id: base64urlToBuffer(key),
+                transports: ["internal"] // Force using device's built-in biometric sensor
+            };
+        });
+
         const challenge = window.crypto.getRandomValues(new Uint8Array(32));
-        const options = { publicKey: { challenge: challenge, rpId: window.location.hostname, userVerification: "required", timeout: 60000 } };
+        const options = { 
+            publicKey: { 
+                challenge: challenge, 
+                rpId: window.location.hostname,
+                allowCredentials: allowedCredentials, // This bypasses the popup and goes direct to fingerprint
+                userVerification: "required", 
+                timeout: 60000 
+            } 
+        };
+        
         const assertion = await navigator.credentials.get(options);
         if (assertion) {
             const credIdBase64 = bufferToBase64url(assertion.rawId);
@@ -705,9 +735,15 @@ async function loginWithBiometric() {
                 document.getElementById('rememberMe').checked = true;
                 showToast("Fingerprint Verified! Logging in...", "success");
                 login();
-            } else Swal.fire({icon: 'warning', title: 'Warning!', text: 'Fingerprint matched, but user not found in CMT system! Try registering again.'});
+            } else {
+                Swal.fire({icon: 'warning', title: 'Warning!', text: 'Fingerprint matched, but user not found in CMT system! Try registering again.'});
+            }
         }
-    } catch(e) { if(e.name !== 'AbortError' && e.name !== 'NotAllowedError') Swal.fire({icon: 'error', title: 'Login Error', text: e.message}); }
+    } catch(e) { 
+        if(e.name !== 'AbortError' && e.name !== 'NotAllowedError') {
+            Swal.fire({icon: 'error', title: 'Login Error', text: e.message}); 
+        }
+    }
 }
 
 document.addEventListener('mousemove', (e) => {
