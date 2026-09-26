@@ -375,6 +375,9 @@ async function fetchStickyNotes() {
     const { data, error } = await _supabase.from('notes').select('*').eq('isactive', 1);
     if(!error && data) { stickyNotes = data; renderStickyNotes(); }
 }
+
+askNotificationPermission(); // Eta browser e permission popup dekhabe
+
 function renderStickyNotes() {
     let board = document.getElementById('stickyNotesBoard'); 
     if(!board) return;
@@ -811,7 +814,11 @@ function addNotification(title, msg, icon, color) {
     notifs.unshift({title, msg, icon, color, time: new Date().toLocaleTimeString()}); 
     if(notifs.length > 15) notifs.pop(); 
     renderNotifs(); 
+    
+    // Trigger Native OS Notification
+    sendNativeNotification(title, msg);
 }
+
 function renderNotifs() { let badge = document.getElementById('notifBadge'); let list = document.getElementById('notifList'); if(notifs.length === 0) { badge.style.display = 'none'; list.innerHTML = '<li style="padding:15px; text-align:center; color:var(--text-muted); font-size:12px;">No new notifications</li>'; } else { badge.style.display = 'flex'; badge.innerText = notifs.length; list.innerHTML = notifs.map(n => `<li class='notif-item'><div class='notif-icon' style='background:${n.color}'><i class='fa ${n.icon}'></i></div><div><div style='font-weight:600; color:var(--text-title);'>${n.title}</div><div style='color:var(--text-muted); margin-top:3px;'>${n.msg}</div><div style='font-size:10px; color:#cbd5e1; margin-top:4px;'>${n.time}</div></div></li>`).join(''); } }
 function toggleNotifMenu(e) { e.stopPropagation(); document.getElementById('notifMenu').classList.toggle('show'); }
 function clearNotifs(e) { e.stopPropagation(); notifs = []; renderNotifs(); }
@@ -3680,5 +3687,42 @@ function playSound(type) {
             'CMT Sound Error:',
             error
         );
+    }
+}
+
+
+
+// --- NATIVE OS NOTIFICATION SYSTEM ---
+function askNotificationPermission() {
+    if ("Notification" in window) {
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if(permission === "granted") {
+                    console.log("CMT Native Notification Enabled!");
+                }
+            });
+        }
+    }
+}
+
+function sendNativeNotification(title, body) {
+    // Check if permission is granted
+    if ("Notification" in window && Notification.permission === "granted") {
+        // Checking if the document is hidden/minimized. 
+        // We only want native notifications if the user is not actively looking at the tab
+        if (document.visibilityState === 'hidden') {
+            const options = {
+                body: body,
+                icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
+                vibrate: [200, 100, 200]
+            };
+            let nativeNotif = new Notification(title, options);
+            
+            // Clicking the notification brings the tab to focus
+            nativeNotif.onclick = function() {
+                window.focus();
+                this.close();
+            };
+        }
     }
 }
