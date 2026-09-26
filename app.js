@@ -1159,44 +1159,91 @@ async function saveClient() {
     }
 }
 
-// --- OTP AND PASSWORD RESET ---
+// --- OTP AND PASSWORD RESET (PROFESSIONAL DB VALIDATION) ---
 let generatedOTP = "";
-function sendOTP() {
-    let email = document.getElementById('fp-email').value;
+let verifiedResetEmail = "";
+
+async function sendOTP() {
+    let email = document.getElementById('fp-email').value.trim();
     if(!email) return showToast("Enter your registered email address", "error");
     
-    showLoader("Sending OTP...");
+    showLoader("Verifying Email...");
+    
+    // 1. Strict Database Validation
+    const { data, error } = await _supabase.from('users').select('email').eq('email', email).eq('isactive', 1);
+    
+    hideLoader();
+
+    if (error || !data || data.length === 0) {
+        return Swal.fire({
+            icon: 'error',
+            title: 'Account Not Found',
+            text: 'This email is not registered in the system or the account is inactive!',
+            confirmButtonColor: '#3b82f6'
+        });
+    }
+
+    showLoader("Generating & Sending OTP...");
     
     setTimeout(() => {
         hideLoader();
-        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-        alert(`[System Message]\n\nOTP sent to ${email} (Mock).\nYour OTP is: ${generatedOTP}`);
+        // 2. Generate 6-Digit Secure OTP
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+        verifiedResetEmail = email;
         
+        // 3. Mask Email for Step 2 UI
+        let maskedEmail = email.replace(/(.{2})(.*)(?=@)/,
+            function(gp1, gp2, gp3) { 
+                for(let i = 0; i < gp3.length; i++) { gp2+= "*"; } return gp2; 
+            });
+        document.getElementById('fp-display-email').innerText = maskedEmail;
+
+        // 4. Move to Step 2 UI
         document.getElementById('fp-step-1').style.display = 'none';
         document.getElementById('fp-step-2').style.display = 'block';
+
+        // 5. Professional Mock Email Delivery Notification
+        Swal.fire({
+            icon: 'success',
+            title: 'OTP Sent Successfully!',
+            html: `A 6-digit verification code has been sent to your email.<br><br><span style="font-size:12px; color:#ef4444; background: rgba(239, 68, 68, 0.1); padding: 5px 10px; border-radius: 8px; display: inline-block; margin-top: 10px;"><b>Mock Alert:</b> Since no SMTP server is connected, your OTP is: <b style="font-size: 16px;">${generatedOTP}</b></span>`,
+            confirmButtonColor: '#10b981'
+        });
+
     }, 1200);
 }
 
 async function verifyOTPAndReset() {
-    let otp = document.getElementById('fp-otp').value;
+    let otp = document.getElementById('fp-otp').value.trim();
     let newPass = document.getElementById('fp-new-pass').value;
-    let email = document.getElementById('fp-email').value;
+    let confirmPass = document.getElementById('fp-confirm-pass').value;
     
-    if(otp !== generatedOTP) return showToast("Invalid OTP!", "error");
-    if(!newPass) return showToast("Please enter a new password", "error");
-
+    // Validations
+    if(!otp) return showToast("Please enter the 6-digit OTP", "error");
+    if(otp !== generatedOTP) return showToast("Invalid OTP Code!", "error");
+    
+    if(!newPass || !confirmPass) return showToast("Please enter and confirm your new password", "error");
     if(newPass.length < 6) return showToast("Password must be at least 6 characters.", "error");
+    if(newPass !== confirmPass) return showToast("Passwords do not match!", "error");
     
-    showLoader("Resetting Password...");
+    showLoader("Updating Password...");
     
-    const { error } = await _supabase.from('users').update({ password: newPass, actiondate: new Date().toISOString() }).eq('email', email);
+    // Update Password in Supabase DB
+    const { error } = await _supabase.from('users').update({ password: newPass, actiondate: new Date().toISOString() }).eq('email', verifiedResetEmail);
+    
     hideLoader(); 
     
     if (error) {
-        showToast("Failed to reset password. Email might not exist.", "error");
+        showToast("Failed to reset password. Please try again.", "error");
     } else {
-        showToast("Password Reset Successfully!", "success");
-        document.getElementById('forgotPassModal').style.display = 'none';
+        Swal.fire({
+            icon: 'success',
+            title: 'Password Updated!',
+            text: 'Your password has been changed successfully. You can now login with the new password.',
+            confirmButtonColor: '#3b82f6'
+        }).then(() => {
+            document.getElementById('forgotPassModal').style.display = 'none';
+        });
     }
 }
 
@@ -1204,6 +1251,7 @@ function openForgotPassModal() {
     document.getElementById('fp-email').value = '';
     document.getElementById('fp-otp').value = '';
     document.getElementById('fp-new-pass').value = '';
+    document.getElementById('fp-confirm-pass').value = '';
     document.getElementById('fp-step-1').style.display = 'block';
     document.getElementById('fp-step-2').style.display = 'none';
     document.getElementById('forgotPassModal').style.display = 'flex';
