@@ -182,7 +182,8 @@ async function fetchEmailTemplates() {
 function renderEmailTemplates() {
     let container = document.getElementById('emailTableContainer');
     if(!container) return;
-    let html = '<table style="width:100%;"><thead><tr><th>Template Name</th><th>Subject</th><th>Action</th></tr></thead><tbody>';
+    // Applied perfect column width distribution to fix the spacing issue
+    let html = '<table style="width:100%; table-layout: auto;"><thead><tr><th style="width: 30%;">Template Name</th><th style="width: 45%;">Subject</th><th style="width: 25%;">Action</th></tr></thead><tbody>';
     if(emailTemplates.length === 0) {
         html += '<tr><td colspan="3" style="text-align:center;">No templates saved yet.</td></tr>';
     } else {
@@ -190,9 +191,10 @@ function renderEmailTemplates() {
             html += `<tr>
                 <td><b>${t.emailname}</b></td>
                 <td>${t.emailsubject}</td>
-                <td style="display:flex; gap:10px; align-items:center;">
+                <td style="display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
                     <button class="btn-primary" style="padding:6px 12px; font-size:12px; background:#3b82f6;" onclick="sendEmailTemplate('${t.emailtempid}')"><i class="fa fa-paper-plane"></i> Send Email</button>
-                    <i class="fa fa-edit action-icon edit-icon" style="margin-left:15px;" onclick="openEmailTemplateModal('${t.emailtempid}')" title="Edit Template"></i>
+                    <i class="fa fa-eye action-icon view-icon" style="margin-left:5px;" onclick="openEmailViewModal('${t.emailtempid}')" title="View Details"></i>
+                    <i class="fa fa-edit action-icon edit-icon" onclick="openEmailTemplateModal('${t.emailtempid}')" title="Edit Template"></i>
                     <i class="fa fa-trash action-icon delete-icon" onclick="deleteEmailTemplate('${t.emailtempid}')" title="Delete"></i>
                 </td>
             </tr>`;
@@ -200,6 +202,70 @@ function renderEmailTemplates() {
     }
     html += '</tbody></table>';
     container.innerHTML = html;
+}
+
+// --- USER PROFILE VIEW MODAL ---
+function openUserViewModal(idx) {
+    let r = globalUserData[idx];
+    if (!r) return;
+    
+    // Set Profile Image or Initials
+    if (r.profilepic) {
+        document.getElementById('uv-avatar-img').src = r.profilepic;
+        document.getElementById('uv-avatar-img').style.display = 'block';
+        document.getElementById('uv-avatar-text').style.display = 'none';
+    } else {
+        document.getElementById('uv-avatar-text').innerText = r.username ? r.username.charAt(0).toUpperCase() : 'U';
+        document.getElementById('uv-avatar-img').style.display = 'none';
+        document.getElementById('uv-avatar-text').style.display = 'flex';
+    }
+    
+    document.getElementById('uv-name').innerText = r.username || 'N/A';
+    document.getElementById('uv-role').innerText = r.role || 'User';
+    
+    // Set Status
+    let statusBadge = document.getElementById('uv-status');
+    if(r.isactive === 1) {
+        statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+        statusBadge.style.color = '#10b981';
+        statusBadge.innerText = 'Active User';
+    } else {
+        statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+        statusBadge.style.color = '#ef4444';
+        statusBadge.innerText = 'Inactive User';
+    }
+    
+    // Set other info
+    document.getElementById('uv-mobile').innerText = r.mobilenumber || 'N/A';
+    document.getElementById('uv-email').innerText = r.email || 'N/A';
+    document.getElementById('uv-loginid').innerText = r.loginid || 'N/A';
+    
+    // Password with Mask & Eye toggle
+    let passVal = r.password || '';
+    document.getElementById('uv-pass').innerHTML = passVal ? `<span class="pwd-mask" data-pwd="${passVal}">••••••••</span> <i class="fa fa-eye toggle-table-pwd" style="cursor:pointer; color:#3b82f6; font-size:15px;" onclick="toggleTablePwd(this)"></i>` : 'N/A';
+    
+    document.getElementById('uv-designation').innerText = r.designation || 'N/A';
+    document.getElementById('uv-department').innerText = r.department || 'N/A';
+    document.getElementById('uv-organization').innerText = r.organization || 'N/A';
+    document.getElementById('uv-address').innerText = r.address || 'N/A';
+    document.getElementById('uv-create-date').innerText = r.createdate ? formatDateBD(r.createdate) : 'N/A';
+    
+    document.getElementById('userViewModal').style.display = 'flex';
+}
+
+// --- EMAIL TEMPLATE VIEW MODAL ---
+function openEmailViewModal(id) {
+    let t = emailTemplates.find(x => x.emailtempid == id);
+    if(!t) return;
+    
+    document.getElementById('ev-name').innerText = t.emailname || 'N/A';
+    document.getElementById('ev-subject').innerText = t.emailsubject || 'N/A';
+    document.getElementById('ev-body').innerText = t.emailbody || 'N/A';
+    
+    // Link the modal's Send button to the specific template
+    document.getElementById('ev-send-btn').setAttribute('onclick', `sendEmailTemplate('${id}')`);
+    
+    document.getElementById('emailViewModal').style.display = 'flex';
 }
 
 function openEmailTemplateModal(id = null) {
@@ -2121,13 +2187,15 @@ async function fetchUsers() {
 }
 
 function renderUsers() { 
-    let data = globalUserData; let html = '<table style="min-width: 1500px;"><thead><tr><th>Created Date</th><th>LoginID</th><th>Password</th><th>Name</th><th>Designation</th><th>Department</th><th>Organization</th><th>Mobile</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>'; 
+    let data = globalUserData; 
+    let html = '<table style="min-width: 1500px;"><thead><tr><th>Created Date</th><th>LoginID</th><th>Password</th><th>Name</th><th>Designation</th><th>Department</th><th>Organization</th><th>Mobile</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>'; 
     for(let i=0; i<data.length; i++) { 
         let r = data[i];
         let rIdx = r.userid; let cDate = r.createdate ? formatDateBD(r.createdate) : 'N/A'; 
         let statText = r.isactive === 1 ? 'Active' : 'Inactive';
-        html += `<tr><td><span style="font-size:13px; color:var(--text-muted); font-weight:500;">${cDate}</span></td><td><b>${r.loginid}</b></td><td><span class="pwd-mask" data-pwd="${r.password}">••••••••</span> <i class="fa fa-eye toggle-table-pwd" style="cursor:pointer; color:var(--text-muted); margin-left:5px; font-size:12px;" onclick="toggleTablePwd(this)"></i></td><td>${r.username}</td><td>${r.designation||'-'}</td><td>${r.department||'-'}</td><td>${r.organization||'-'}</td><td>${r.mobilenumber||'-'}</td><td>${r.email||'-'}</td><td><span class="user-role">${r.role}</span></td><td>${statText}</td><td><i class="fa fa-edit action-icon edit-icon" onclick="openUserModal('edit', ${i}, '${rIdx}')"></i><i class="fa fa-trash action-icon delete-icon" onclick="deleteUser('${rIdx}')"></i></td></tr>`; 
-    } html += '</tbody></table>'; document.getElementById('userTableContainer').innerHTML = html; 
+        html += `<tr><td><span style="font-size:13px; color:var(--text-muted); font-weight:500;">${cDate}</span></td><td><b>${r.loginid}</b></td><td><span class="pwd-mask" data-pwd="${r.password}">••••••••</span> <i class="fa fa-eye toggle-table-pwd" style="cursor:pointer; color:var(--text-muted); margin-left:5px; font-size:12px;" onclick="toggleTablePwd(this)"></i></td><td>${r.username}</td><td>${r.designation||'-'}</td><td>${r.department||'-'}</td><td>${r.organization||'-'}</td><td>${r.mobilenumber||'-'}</td><td>${r.email||'-'}</td><td><span class="user-role">${r.role}</span></td><td>${statText}</td><td style="min-width: 130px;"><i class="fa fa-eye action-icon view-icon" title="View Profile" onclick="openUserViewModal(${i})"></i><i class="fa fa-edit action-icon edit-icon" title="Edit" onclick="openUserModal('edit', ${i}, '${rIdx}')"></i><i class="fa fa-trash action-icon delete-icon" title="Delete" onclick="deleteUser('${rIdx}')"></i></td></tr>`; 
+    } html += '</tbody></table>'; 
+    document.getElementById('userTableContainer').innerHTML = html; 
 }
 
 function handleUserPicUpload(e) {

@@ -818,6 +818,84 @@
     </div>
 </div>
 
+<!-- User Details View Modal -->
+<div class="modal-overlay" id="userViewModal" style="padding: 0 !important; z-index: 9999999;">
+    <div class="modal" style="width: 90vw; max-width: 900px; border-radius: 16px;">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('userViewModal').style.display='none'"></i>
+                <h3 style="color:var(--text-title);"><i class="fa fa-id-badge" style="color:#3b82f6; margin-right:8px;"></i> User Profile Details</h3>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 25px; background: var(--bg-main);">
+            <div style="display: flex; gap: 25px; flex-wrap: wrap; width: 100%;">
+                
+                <!-- Left Sidebar (Profile) -->
+                <div style="flex: 1; min-width: 280px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px 20px; text-align: center; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center;">
+                    <img id="uv-avatar-img" src="" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); display: none; border: 2px solid #3b82f6;">
+                    <div id="uv-avatar-text" style="width: 90px; height: 90px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: 700; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);">U</div>
+                    <h2 id="uv-name" style="margin: 0 0 10px; color: var(--text-title); font-size: 22px; font-weight: 700;">User Name</h2>
+                    <div id="uv-role" style="margin-bottom: 15px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 600;">Role</div>
+                    <div id="uv-status" style="display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">Status</div>
+                    
+                    <div style="width: 100%; height: 1px; background: var(--border-color); margin: 25px 0;"></div>
+                    
+                    <div style="text-align: left; font-size: 14px; color: var(--text-muted); display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #3b82f6;"><i class="fa fa-phone-alt"></i></div> <span id="uv-mobile" style="font-weight: 500; color: var(--text-main);">N/A</span></div>
+                        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #f59e0b;"><i class="fa fa-envelope"></i></div> <span id="uv-email" style="font-weight: 500; color: var(--text-main); word-break: break-all;">N/A</span></div>
+                    </div>
+                </div>
+                
+                <!-- Right Content (Details) -->
+                <div style="flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <!-- Credentials Section -->
+                    <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
+                        <div class="form-section-title" style="font-size: 14px; margin-bottom: 15px; color: #3b82f6;"><i class="fa fa-shield-alt"></i> Access Credentials</div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-group"><label>Login ID</label><div class="read-only-box" id="uv-loginid"></div></div>
+                            <div class="form-group"><label>Password</label><div class="read-only-box" id="uv-pass" style="justify-content: space-between;"></div></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Corporate Info Section -->
+                    <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
+                        <div class="form-section-title" style="font-size: 14px; margin-bottom: 15px; color: #8b5cf6;"><i class="fa fa-building"></i> Corporate Information</div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-group"><label>Designation</label><div class="read-only-box" id="uv-designation"></div></div>
+                            <div class="form-group"><label>Department</label><div class="read-only-box" id="uv-department"></div></div>
+                            <div class="form-group"><label>Organization</label><div class="read-only-box" id="uv-organization"></div></div>
+                            <div class="form-group"><label>Created Date</label><div class="read-only-box"><i class="fa fa-calendar-alt" style="color:var(--text-muted); margin-right:8px;"></i> <span id="uv-create-date"></span></div></div>
+                            <div class="form-group full-width"><label>Address</label><div class="read-only-box" id="uv-address" style="min-height: 60px; align-items: flex-start; white-space: pre-wrap;"></div></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Template View Modal -->
+<div class="modal-overlay" id="emailViewModal" style="padding: 0 !important; z-index: 9999999;">
+    <div class="modal" style="width: 90vw; max-width: 650px; border-radius: 16px;">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <i class="fa fa-arrow-left close-modal-icon" onclick="document.getElementById('emailViewModal').style.display='none'"></i>
+                <h3 style="color:var(--text-title);"><i class="fa fa-envelope-open-text" style="color:#3b82f6; margin-right:8px;"></i> View Template</h3>
+            </div>
+            <button class="btn-primary" id="ev-send-btn" onclick=""><i class="fa fa-paper-plane"></i> Send Email</button>
+        </div>
+        <div class="modal-body" style="padding: 25px; background: var(--bg-main);">
+            <div class="form-section" style="padding: 20px; border-radius: 12px; border: none; box-shadow: var(--shadow-sm);">
+                <div class="form-group" style="margin-bottom:15px;"><label>Template Name</label><div class="read-only-box" id="ev-name" style="font-weight: 700; color: #3b82f6;"></div></div>
+                <div class="form-group" style="margin-bottom:15px;"><label>Email Subject</label><div class="read-only-box" id="ev-subject"></div></div>
+                <div class="form-group"><label>Email Body</label><div class="read-only-box" id="ev-body" style="min-height: 150px; align-items: flex-start; white-space: pre-wrap; background: var(--bg-card);"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Reference to separated JS logic -->
     <script src="app.js"></script>
 
