@@ -222,7 +222,7 @@ function openUserViewModal(idx) {
     
     document.getElementById('uv-name').innerText = r.username || 'N/A';
     document.getElementById('uv-role').innerText = r.role || 'User';
-    
+    document.getElementById('uv-pin').innerText = r.otp || 'N/A';
     // Set Status
     let statusBadge = document.getElementById('uv-status');
     if(r.isactive === 1) {
@@ -1159,17 +1159,16 @@ async function saveClient() {
     }
 }
 
-// --- OTP AND PASSWORD RESET (PROFESSIONAL DB VALIDATION) ---
-let generatedOTP = "";
+// --- HIGH SECURITY PIN AND PASSWORD RESET ---
 let verifiedResetEmail = "";
 
-async function sendOTP() {
+async function initiatePasswordReset() {
     let email = document.getElementById('fp-email').value.trim();
     if(!email) return showToast("Enter your registered email address", "error");
     
-    showLoader("Verifying Email...");
+    showLoader("Locating Account...");
     
-    // 1. Strict Database Validation
+    // 1. Check if email exists in Database
     const { data, error } = await _supabase.from('users').select('email').eq('email', email).eq('isactive', 1);
     
     hideLoader();
@@ -1183,66 +1182,59 @@ async function sendOTP() {
         });
     }
 
-    showLoader("Generating & Sending OTP...");
+    // 2. Account Found! Move to Step 2 Silently (NO MOCK ALERTS)
+    verifiedResetEmail = email;
     
-    setTimeout(() => {
-        hideLoader();
-        // 2. Generate 6-Digit Secure OTP
-        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-        verifiedResetEmail = email;
-        
-        // 3. Mask Email for Step 2 UI
-        let maskedEmail = email.replace(/(.{2})(.*)(?=@)/,
-            function(gp1, gp2, gp3) { 
-                for(let i = 0; i < gp3.length; i++) { gp2+= "*"; } return gp2; 
-            });
-        document.getElementById('fp-display-email').innerText = maskedEmail;
-
-        // 4. Move to Step 2 UI
-        document.getElementById('fp-step-1').style.display = 'none';
-        document.getElementById('fp-step-2').style.display = 'block';
-
-        // 5. Professional Mock Email Delivery Notification
-        Swal.fire({
-            icon: 'success',
-            title: 'OTP Sent Successfully!',
-            html: `A 6-digit verification code has been sent to your email.<br><br><span style="font-size:12px; color:#ef4444; background: rgba(239, 68, 68, 0.1); padding: 5px 10px; border-radius: 8px; display: inline-block; margin-top: 10px;"><b>Mock Alert:</b> Since no SMTP server is connected, your OTP is: <b style="font-size: 16px;">${generatedOTP}</b></span>`,
-            confirmButtonColor: '#10b981'
-        });
-
-    }, 1200);
+    let maskedEmail = email.replace(/(.{2})(.*)(?=@)/, function(gp1, gp2, gp3) { 
+        for(let i = 0; i < gp3.length; i++) { gp2+= "*"; } return gp2; 
+    });
+    
+    document.getElementById('fp-display-email').innerText = maskedEmail;
+    document.getElementById('fp-step-1').style.display = 'none';
+    document.getElementById('fp-step-2').style.display = 'block';
 }
 
-async function verifyOTPAndReset() {
-    let otp = document.getElementById('fp-otp').value.trim();
+async function verifyPinAndReset() {
+    let pin = document.getElementById('fp-otp').value.trim();
     let newPass = document.getElementById('fp-new-pass').value;
     let confirmPass = document.getElementById('fp-confirm-pass').value;
     
-    // Validations
-    if(!otp) return showToast("Please enter the 6-digit OTP", "error");
-    if(otp !== generatedOTP) return showToast("Invalid OTP Code!", "error");
-    
+    if(!pin) return showToast("Please enter your Secret Recovery PIN", "error");
     if(!newPass || !confirmPass) return showToast("Please enter and confirm your new password", "error");
     if(newPass.length < 6) return showToast("Password must be at least 6 characters.", "error");
     if(newPass !== confirmPass) return showToast("Passwords do not match!", "error");
     
-    showLoader("Updating Password...");
+    showLoader("Verifying PIN & Securing Account...");
     
-    // Update Password in Supabase DB
-    const { error } = await _supabase.from('users').update({ password: newPass, actiondate: new Date().toISOString() }).eq('email', verifiedResetEmail);
+    // 1. Verify Email + PIN combination directly in Database
+    const { data: userRecord, error: fetchErr } = await _supabase.from('users').select('userid').eq('email', verifiedResetEmail).eq('otp', pin).single();
+
+    if (fetchErr || !userRecord) {
+        hideLoader();
+        return Swal.fire({
+            icon: 'error',
+            title: 'Access Denied!',
+            text: 'The Secret Recovery PIN you entered is incorrect. Please try again or contact Super Admin.',
+            confirmButtonColor: '#ef4444'
+        });
+    }
+
+    // 2. PIN Matched! Update Password in Database
+    const { error: updateErr } = await _supabase.from('users').update({ password: newPass, actiondate: new Date().toISOString() }).eq('email', verifiedResetEmail);
     
     hideLoader(); 
     
-    if (error) {
-        showToast("Failed to reset password. Please try again.", "error");
+    if (updateErr) {
+        showToast("System error: Failed to reset password.", "error");
     } else {
         Swal.fire({
             icon: 'success',
-            title: 'Password Updated!',
-            text: 'Your password has been changed successfully. You can now login with the new password.',
+            title: 'Account Secured!',
+            text: 'Your password has been changed successfully. You can now login with your new credentials.',
             confirmButtonColor: '#3b82f6'
         }).then(() => {
             document.getElementById('forgotPassModal').style.display = 'none';
+            // Optionally redirect to login screen or auto-fill login details
         });
     }
 }
@@ -2289,6 +2281,7 @@ function openUserModal(mode, idx=null, rIdx=null) {
         document.getElementById('u-address').value=''; 
         document.getElementById('u-create-date').value = getTodayStr(); 
         document.getElementById('u-pic').value = '';
+        document.getElementById('u-pin').value = r.otp || '';
         document.getElementById('u-status').value = 'Active';
 
    } else { 
@@ -2390,10 +2383,11 @@ async function saveSystemUser() {
         department: document.getElementById('u-department').value,
         organization: document.getElementById('u-organization').value,
         address: document.getElementById('u-address').value,
+        otp: document.getElementById('u-pin').value.trim(), // Ekhane notun field ta add kora hoyeche
         actiondate: new Date().toISOString(), 
         ipaddress: ip, 
         updatedby: currentUserIdDb
-    }; 
+    };
     
     if(uUploadedBase64 !== "") {
         d.profilepic = 'data:' + uUploadedMimeType + ';base64,' + uUploadedBase64;

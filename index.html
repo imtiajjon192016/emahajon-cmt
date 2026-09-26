@@ -496,6 +496,7 @@
                             </div>
                             
                             <div class="form-group"><label>Role Config <span style="color:#ef4444; font-size:14px;">*</span></label><select id="u-role"><option value="Admin">Master User (Admin)</option><option value="User">Standard User</option></select></div>
+                            <div class="form-group"><label>Recovery PIN (OTP) <span style="color:#ef4444; font-size:14px;">*</span></label><input id="u-pin" placeholder="Enter 6-digit PIN" maxlength="6" type="text"></div>
                             <div class="form-group"><label>Status</label><select id="u-status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
                         </div>
                     </div>
@@ -619,23 +620,22 @@
         </div>
     </div>
   
-<!-- Forgot Password Modal (Professional ERP Style) -->
+<!-- Forgot Password Modal (High Security ERP Style) -->
 <div class="modal-overlay" id="forgotPassModal" style="z-index: 10000000;">
     <div class="modal" style="max-width: 450px; height:auto; padding:0; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
         
-        <!-- Premium Header -->
         <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 30px 20px 20px; text-align: center; position: relative;">
             <i class="fa fa-times close-modal-icon" onclick="document.getElementById('forgotPassModal').style.display='none'" style="position: absolute; right: 15px; top: 15px; color: rgba(255,255,255,0.7); transition: 0.3s; cursor: pointer;"></i>
             <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                <i class="fa fa-shield-alt" style="font-size: 28px; color: white;"></i>
+                <i class="fa fa-user-shield" style="font-size: 28px; color: white;"></i>
             </div>
-            <h3 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">Reset Password</h3>
+            <h3 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">Account Recovery</h3>
             <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 8px 0 0;">Secure your CMT ERP account</p>
         </div>
 
         <!-- Step 1: Email Validation -->
         <div class="modal-body" id="fp-step-1" style="padding: 30px; background: var(--bg-card);">
-            <p style="font-size:14px; color:var(--text-muted); margin-top:0; margin-bottom:20px; text-align: center;">Enter your registered email address to receive a 6-digit verification code.</p>
+            <p style="font-size:14px; color:var(--text-muted); margin-top:0; margin-bottom:20px; text-align: center;">Enter your registered email address to initiate password recovery.</p>
             
             <div class="form-group" style="margin-bottom: 25px;">
                 <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Email Address</label>
@@ -645,18 +645,18 @@
                 </div>
             </div>
             
-            <button class="btn-primary" onclick="sendOTP()" style="width:100%; height: 48px; justify-content:center; font-size: 15px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #2563eb);"><i class="fa fa-paper-plane"></i> Send OTP Code</button>
+            <button class="btn-primary" onclick="initiatePasswordReset()" style="width:100%; height: 48px; justify-content:center; font-size: 15px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #2563eb);"><i class="fa fa-search"></i> Verify Account</button>
         </div>
 
-        <!-- Step 2: OTP & New Password -->
+        <!-- Step 2: Secret PIN & New Password -->
         <div class="modal-body" id="fp-step-2" style="display:none; padding: 30px; background: var(--bg-card);">
             <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; text-align: center; margin-bottom: 20px;">
-                <p style="font-size:13px; color:#10b981; margin:0; font-weight: 600;"><i class="fa fa-check-circle"></i> OTP Sent to <span id="fp-display-email" style="font-weight: 700;"></span></p>
+                <p style="font-size:13px; color:#10b981; margin:0; font-weight: 600;"><i class="fa fa-check-circle"></i> Account Verified: <span id="fp-display-email" style="font-weight: 700;"></span></p>
             </div>
             
             <div class="form-group" style="margin-bottom: 20px;">
-                <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Enter 6-Digit OTP</label>
-                <input id="fp-otp" maxlength="6" placeholder="• • • • • •" style="letter-spacing: 12px; text-align: center; font-size: 20px; font-weight: bold; padding: 12px; height: 50px; border-radius: 10px; border: 2px solid var(--border-input);" type="text">
+                <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Secret Recovery PIN / OTP</label>
+                <input id="fp-otp" maxlength="6" placeholder="• • • • • •" style="letter-spacing: 12px; text-align: center; font-size: 20px; font-weight: bold; padding: 12px; height: 50px; border-radius: 10px; border: 2px solid var(--border-input);" type="password">
             </div>
             
             <div class="form-group" style="margin-bottom: 15px;">
@@ -677,7 +677,7 @@
                 </div>
             </div>
             
-            <button class="btn-primary" onclick="verifyOTPAndReset()" style="width:100%; height: 48px; background: linear-gradient(135deg, #10b981, #059669); justify-content:center; font-size: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"><i class="fa fa-check-circle"></i> Update Password</button>
+            <button class="btn-primary" onclick="verifyPinAndReset()" style="width:100%; height: 48px; background: linear-gradient(135deg, #10b981, #059669); justify-content:center; font-size: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"><i class="fa fa-shield-alt"></i> Secure Reset Password</button>
         </div>
     </div>
 </div>
@@ -896,6 +896,7 @@
                         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
                             <div class="form-group"><label>Login ID</label><div class="read-only-box" id="uv-loginid"></div></div>
                             <div class="form-group"><label>Password</label><div class="read-only-box" id="uv-pass" style="justify-content: space-between;"></div></div>
+                            <div class="form-group full-width"><label>Recovery PIN (OTP)</label><div class="read-only-box" id="uv-pin" style="color: #ef4444; font-weight: bold; letter-spacing: 2px;"></div></div>
                         </div>
                     </div>
                     
