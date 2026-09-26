@@ -3736,12 +3736,21 @@ function sendNativeNotification(title, body) {
                 icon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNdg1kTmu2ThNkVb9gBwX_RjSc-eXehSMCn5o-m5CEzvIqFBMtzbjIwIE8eyqGl8pSEILd4dfTT-XJkHX64jBLBSP93PVcAVjdN5kMjv4za4ZvNsTjXhawgtr5o-9VBW3i0Qk13m1GWBULyT8tY94k4hAM0JMgIP1bLUH_zsjdyD8oqPglH2cZQTSljYE/s320/emahajon-icon.png',
                 vibrate: [200, 100, 200]
             };
-            let nativeNotif = new Notification(title, options);
-            
-            nativeNotif.onclick = function() {
-                window.focus();
-                this.close();
-            };
+
+            // Mobile PWA / Service Worker specific approach
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification(title, options);
+                }).catch(function() {
+                    // Fallback if Service Worker fails
+                    let nativeNotif = new Notification(title, options);
+                    nativeNotif.onclick = function() { window.focus(); this.close(); };
+                });
+            } else {
+                // Standard Desktop fallback
+                let nativeNotif = new Notification(title, options);
+                nativeNotif.onclick = function() { window.focus(); this.close(); };
+            }
         }
     } catch (error) {
         console.warn("Failed to send notification:", error);
